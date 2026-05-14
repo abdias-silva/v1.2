@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Detalhes do projeto de pesquisa — NEPA · UFMA" />
+  <title>Projeto de Pesquisa | NEPA — UFMA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+
+  <style>
+    .breadcrumb-bar { padding: 1.6rem 3rem; border-bottom: 1px solid var(--border-color); background: var(--bg-secao); margin-top: var(--header-h); }
+    .breadcrumb { display: flex; align-items: center; gap: 0.8rem; max-width: var(--max-width); margin: 0 auto; font-size: 1.35rem; color: var(--cinza-claro); }
+    .breadcrumb a { color: var(--cinza-claro); transition: color 0.2s; }
+    .breadcrumb a:hover { color: var(--verde); }
+    .breadcrumb-sep { opacity: 0.45; }
+    .breadcrumb-current { color: var(--verde); font-weight: 600; }
+
+    .projeto-detail-main { display: grid; grid-template-columns: 1fr 340px; gap: 5rem; max-width: var(--max-width); margin: 0 auto; padding: 5rem 3rem 8rem; align-items: start; }
+    .projeto-detail-header { margin-bottom: 4rem; }
+    .projeto-detail-type-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .projeto-status-badge { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1.4rem; border-radius: 50px; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.03em; }
+    .projeto-status-badge.andamento { background: rgba(96, 117, 55, 0.12); color: var(--verde-escuro); }
+    .projeto-status-badge.concluido { background: rgba(40, 90, 160, 0.1); color: #285aa0; }
+    .projeto-status-badge.pausado { background: rgba(200, 100, 30, 0.1); color: #c8641e; }
+    .projeto-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .projeto-detail-title { font-size: clamp(2.4rem, 3.5vw, 3.6rem); font-weight: 800; color: var(--preto); line-height: 1.25; margin-bottom: 1.8rem; }
+    .projeto-detail-linha { display: inline-flex; align-items: center; gap: 0.8rem; font-size: 1.4rem; font-weight: 600; color: var(--verde); margin-bottom: 2.5rem; }
+
+    .projeto-section { margin-bottom: 4rem; padding-bottom: 4rem; border-bottom: 1px solid var(--border-color); }
+    .projeto-section:last-child { border-bottom: none; margin-bottom: 0; }
+    .projeto-section-title { display: flex; align-items: center; gap: 1rem; font-size: 1.8rem; font-weight: 700; color: var(--preto); margin-bottom: 2rem; }
+    .projeto-section-title svg { color: var(--verde); flex-shrink: 0; }
+    .projeto-section p { font-size: 1.6rem; line-height: 1.9; color: var(--cinza-texto); margin-bottom: 1.5rem; }
+    .projeto-section p:last-child { margin-bottom: 0; }
+
+    .projeto-objetivos-list { display: flex; flex-direction: column; gap: 1.2rem; }
+    .projeto-objetivo-item { display: flex; align-items: flex-start; gap: 1.2rem; font-size: 1.55rem; line-height: 1.7; color: var(--cinza-texto); }
+    .projeto-objetivo-marker { flex-shrink: 0; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: rgba(96, 117, 55, 0.12); display: flex; align-items: center; justify-content: center; margin-top: 0.15em; }
+    .projeto-objetivo-marker svg { color: var(--verde); }
+
+    .projeto-equipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.8rem; }
+    .projeto-membro-card { display: flex; align-items: center; gap: 1.4rem; padding: 1.8rem 2rem; background: var(--bg-secao); border: 1px solid var(--border-color); border-radius: var(--radius-sm); transition: var(--dur) var(--ease); }
+    .projeto-membro-card:hover { border-color: rgba(96, 117, 55, 0.35); background: var(--bg); transform: translateY(-2px); }
+    .projeto-membro-avatar { width: 4.4rem; height: 4.4rem; border-radius: 50%; background: linear-gradient(135deg, var(--verde-bg) 0%, rgba(96,117,55,0.2) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--verde); }
+    .projeto-membro-name { font-size: 1.4rem; font-weight: 700; color: var(--preto); line-height: 1.3; }
+    .projeto-membro-role { font-size: 1.2rem; color: var(--cinza-claro); margin-top: 0.2rem; }
+
+    .projeto-tags-wrap { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .projeto-tag { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.6rem; background: var(--verde-bg); border: 1.5px solid rgba(96, 117, 55, 0.2); border-radius: 50px; font-size: 1.3rem; font-weight: 600; color: var(--verde-escuro); transition: var(--dur) var(--ease); }
+    .projeto-tag:hover { background: var(--verde); color: #fff; border-color: var(--verde); }
+
+    .projeto-timeline { display: flex; flex-direction: column; position: relative; }
+    .projeto-timeline::before { content: ''; position: absolute; left: 1.35rem; top: 2rem; bottom: 2rem; width: 2px; background: var(--border-color); }
+    .projeto-etapa { display: flex; gap: 2.2rem; padding: 0 0 3rem; position: relative; }
+    .projeto-etapa:last-child { padding-bottom: 0; }
+    .projeto-etapa-dot { flex-shrink: 0; width: 2.8rem; height: 2.8rem; border-radius: 50%; border: 2.5px solid var(--verde); background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1; }
+    .projeto-etapa.concluida .projeto-etapa-dot { background: var(--verde); color: #fff; }
+    .projeto-etapa.atual .projeto-etapa-dot { background: var(--verde); color: #fff; box-shadow: 0 0 0 4px rgba(96, 117, 55, 0.2); }
+    .projeto-etapa-periodo { font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--verde); margin-bottom: 0.4rem; }
+    .projeto-etapa-titulo { font-size: 1.5rem; font-weight: 700; color: var(--preto); margin-bottom: 0.5rem; }
+    .projeto-etapa-desc { font-size: 1.4rem; color: var(--cinza-claro); line-height: 1.7; }
+
+    .projeto-pubs-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .projeto-pub-item { display: flex; gap: 1.8rem; padding: 2rem 2.2rem; background: var(--bg-secao); border: 1px solid var(--border-color); border-radius: var(--radius-sm); align-items: flex-start; transition: var(--dur) var(--ease); }
+    .projeto-pub-item:hover { border-color: rgba(96,117,55,0.3); background: var(--bg); transform: translateX(4px); }
+    .projeto-pub-icon { flex-shrink: 0; width: 4rem; height: 4rem; border-radius: var(--radius-sm); background: rgba(96, 117, 55, 0.1); display: flex; align-items: center; justify-content: center; color: var(--verde); }
+    .projeto-pub-body { flex: 1; min-width: 0; }
+    .projeto-pub-title { font-size: 1.45rem; font-weight: 700; color: var(--preto); line-height: 1.4; margin-bottom: 0.5rem; }
+    .projeto-pub-meta { font-size: 1.25rem; color: var(--cinza-claro); }
+    .projeto-pub-link { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 3.4rem; height: 3.4rem; border-radius: 50%; background: var(--verde-bg); color: var(--verde); border: 1px solid rgba(96,117,55,0.2); transition: var(--dur) var(--ease); margin-top: 0.3rem; }
+    .projeto-pub-link:hover { background: var(--verde); color: #fff; border-color: var(--verde); }
+
+    .projeto-financ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.5rem; }
+    .projeto-financ-item { padding: 2.2rem 2rem; background: var(--bg-secao); border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-align: center; transition: var(--dur) var(--ease); }
+    .projeto-financ-item:hover { border-color: rgba(96,117,55,0.3); background: var(--bg); transform: translateY(-3px); }
+    .projeto-financ-logo { font-size: 2.2rem; font-weight: 800; color: var(--verde); line-height: 1; margin-bottom: 0.7rem; }
+    .projeto-financ-desc { font-size: 1.2rem; color: var(--cinza-claro); font-weight: 500; }
+    .projeto-financ-valor { font-size: 1.3rem; font-weight: 700; color: var(--preto); margin-top: 0.4rem; }
+
+    .projeto-sidebar-card { background: var(--bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--sombra-sm); overflow: hidden; position: sticky; top: calc(var(--header-h) + 2.5rem); }
+    .sidebar-header { padding: 2.2rem 2.5rem; background: var(--verde); color: #fff; }
+    .sidebar-header h3 { font-size: 1.5rem; color: #fff; margin-bottom: 0.3rem; }
+    .sidebar-header p { font-size: 1.2rem; opacity: 0.8; }
+    .sidebar-progress-wrap { padding: 2rem 2.5rem; border-bottom: 1px solid var(--border-color); }
+    .sidebar-progress-label { display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: var(--cinza-texto); }
+    .sidebar-progress-label span:last-child { color: var(--verde); font-weight: 700; }
+    .sidebar-progress-bar { height: 6px; background: var(--verde-bg); border-radius: 10px; overflow: hidden; }
+    .sidebar-progress-fill { height: 100%; background: var(--verde); border-radius: 10px; transition: width 1.2s var(--ease); }
+    .sidebar-meta-item { display: flex; align-items: flex-start; gap: 1.4rem; padding: 1.6rem 2.5rem; border-bottom: 1px solid var(--border-color); }
+    .sidebar-meta-item:last-child { border-bottom: none; }
+    .sidebar-meta-icon { flex-shrink: 0; width: 3.2rem; height: 3.2rem; border-radius: 8px; background: var(--verde-bg); display: flex; align-items: center; justify-content: center; color: var(--verde); margin-top: 0.1rem; }
+    .sidebar-meta-label { font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--cinza-claro); display: block; margin-bottom: 0.3rem; }
+    .sidebar-meta-value { font-size: 1.4rem; font-weight: 600; color: var(--preto); line-height: 1.5; }
+    .sidebar-meta-value a { color: var(--verde); text-decoration: underline; }
+    .sidebar-actions { padding: 2rem 2.5rem; display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--border-color); }
+    .sidebar-btn-primary { display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 1.4rem 2rem; background: var(--verde); color: #fff; font-size: 1.4rem; font-weight: 700; border-radius: 50px; transition: var(--dur) var(--ease); }
+    .sidebar-btn-primary:hover { background: var(--verde-escuro); transform: translateY(-2px); }
+    .sidebar-btn-secondary { display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 1.2rem 2rem; color: var(--verde); font-size: 1.35rem; font-weight: 600; border-radius: 50px; border: 1.5px solid rgba(96, 117, 55, 0.3); transition: var(--dur) var(--ease); }
+    .sidebar-btn-secondary:hover { background: var(--verde-bg); border-color: var(--verde); }
+
+    .loading-spinner { width: 4rem; height: 4rem; border: 3px solid var(--verde-bg); border-top-color: var(--verde); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 2rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+
+    @media (max-width: 1024px) {
+      .projeto-detail-main { grid-template-columns: 1fr; gap: 4rem; }
+      .projeto-sidebar-card { position: static; order: -1; }
+    }
+    @media (max-width: 768px) {
+      .projeto-detail-main { padding: 3rem 2rem 6rem; }
+      .projeto-equipe-grid { grid-template-columns: 1fr; }
+      .breadcrumb-bar { padding: 1.4rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo"><img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" /></a>
+      <nav class="navbar" id="navbar">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Sobre</a>
+        <a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a>
+        <a href="pesquisas.html" class="active-link">Pesquisas</a>
+        <a href="membros.html">Membros</a>
+        <a href="index.html#eventos">Eventos</a>
+        <a href="index.html#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="navbar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="breadcrumb-bar">
+      <nav class="breadcrumb">
+        <a href="index.html">NEPA</a>
+        <span class="breadcrumb-sep">›</span>
+        <a href="pesquisas.html">Pesquisas</a>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current" id="breadcrumb-title">Projeto</span>
+      </nav>
+    </div>
+
+    <div id="loading-state" style="text-align:center; padding:15rem 2rem;">
+      <div class="loading-spinner"></div>
+      <p style="font-size:1.6rem; color:var(--cinza-claro);">Carregando projeto...</p>
+    </div>
+
+    <div id="error-state" style="display:none; text-align:center; padding:15rem 2rem; max-width:600px; margin:0 auto;">
+      <h2 style="font-size:2.2rem; margin-bottom:1rem; color:var(--preto);">Projeto não encontrado</h2>
+      <p style="font-size:1.55rem; color:var(--cinza-claro); margin-bottom:3rem;" id="error-message">Não foi possível localizar este projeto.</p>
+      <a href="pesquisas.html" class="btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar para Pesquisas
+      </a>
+    </div>
+
+    <div id="projeto-detail-wrap" style="display:none;">
+      <div class="projeto-detail-main">
+        <article class="projeto-detail-content">
+          <header class="projeto-detail-header reveal">
+            <div class="projeto-detail-type-row">
+              <span id="projeto-status-badge" class="projeto-status-badge"></span>
+              <span id="projeto-linha-badge" class="badge badge-verde"></span>
+            </div>
+            <h1 class="projeto-detail-title" id="projeto-titulo"></h1>
+            <div class="projeto-detail-linha" id="projeto-linha-info"></div>
+          </header>
+
+          <section class="projeto-section reveal" id="section-resumo" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Resumo</h2>
+            <div id="projeto-resumo"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-objetivos" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Objetivos</h2>
+            <div class="projeto-objetivos-list" id="projeto-objetivos"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-metodologia" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg> Metodologia</h2>
+            <div id="projeto-metodologia"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-area" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Área de Estudo</h2>
+            <p id="projeto-area"></p>
+          </section>
+
+          <section class="projeto-section reveal" id="section-cronograma" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Cronograma e Etapas</h2>
+            <div class="projeto-timeline" id="projeto-cronograma"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-equipe" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Equipe de Pesquisa</h2>
+            <div class="projeto-equipe-grid" id="projeto-equipe"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-financ" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Financiamento e Parcerias</h2>
+            <div class="projeto-financ-grid" id="projeto-financiamento"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-keywords" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg> Palavras-chave</h2>
+            <div class="projeto-tags-wrap" id="projeto-keywords"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-pubs" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Publicações Vinculadas</h2>
+            <div class="projeto-pubs-list" id="projeto-publicacoes"></div>
+          </section>
+
+          <section class="projeto-section reveal" id="section-resultados" style="display:none;">
+            <h2 class="projeto-section-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Resultados</h2>
+            <div id="projeto-resultados"></div>
+          </section>
+
+          <a href="pesquisas.html" class="btn-ghost" style="margin-top:1rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            Voltar para Pesquisas
+          </a>
+        </article>
+
+        <aside class="projeto-sidebar-card">
+          <div class="sidebar-header">
+            <h3>Informações do Projeto</h3>
+            <p>Resumo executivo</p>
+          </div>
+          <div class="sidebar-progress-wrap" id="sidebar-progress-wrap" style="display:none;">
+            <div class="sidebar-progress-label">
+              <span>Progresso geral</span>
+              <span id="progresso-valor">0%</span>
+            </div>
+            <div class="sidebar-progress-bar">
+              <div class="sidebar-progress-fill" id="progresso-fill" style="width:0%;"></div>
+            </div>
+          </div>
+          <div id="sidebar-meta-list"></div>
+          <div class="sidebar-actions" id="sidebar-actions"></div>
+        </aside>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer-section">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 NEPA — Núcleo de Estudos e Pesquisas Ambientais · UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+  </button>
+
+  <script>
+    function showSection(id, content) {
+      const section = document.getElementById(`section-${id}`);
+      if (content && (typeof content !== 'string' || content.trim())) {
+        section.style.display = 'block';
+        return true;
+      }
+      return false;
+    }
+
+    function renderProjeto(p) {
+      // Cabeçalho
+      document.getElementById('breadcrumb-title').textContent =
+        p.titulo.length > 50 ? p.titulo.substring(0, 50) + '...' : p.titulo;
+      document.title = `${p.titulo} | NEPA`;
+
+      const statusLabels = { andamento: 'Em andamento', concluido: 'Concluído', pausado: 'Pausado' };
+      const statusBadge = document.getElementById('projeto-status-badge');
+      statusBadge.className = `projeto-status-badge ${p.status}`;
+      statusBadge.innerHTML = `<span class="projeto-status-dot"></span> ${statusLabels[p.status] || 'Em andamento'}`;
+
+      document.getElementById('projeto-titulo').textContent = p.titulo;
+
+      const linha = NepaDB.findById('linhas_pesquisa', p.linha_pesquisa_id);
+      if (linha) {
+        document.getElementById('projeto-linha-badge').textContent = linha.titulo;
+        document.getElementById('projeto-linha-info').innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Linha: ${linha.titulo}`;
+      } else {
+        document.getElementById('projeto-linha-badge').style.display = 'none';
+        document.getElementById('projeto-linha-info').style.display = 'none';
+      }
+
+      // Resumo
+      if (p.resumo && showSection('resumo', p.resumo)) {
+        document.getElementById('projeto-resumo').innerHTML = String(p.resumo)
+          .split(/\n\n+/).map(par => `<p>${par.replace(/\n/g, '<br>')}</p>`).join('');
+      }
+
+      // Objetivos
+      const objetivos = NepaDB.parseLines(p.objetivos);
+      if (objetivos.length && showSection('objetivos', '1')) {
+        document.getElementById('projeto-objetivos').innerHTML = objetivos.map(obj => `
+          <div class="projeto-objetivo-item">
+            <span class="projeto-objetivo-marker">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span>${obj}</span>
+          </div>`).join('');
+      }
+
+      // Metodologia
+      if (p.metodologia && showSection('metodologia', p.metodologia)) {
+        document.getElementById('projeto-metodologia').innerHTML = String(p.metodologia)
+          .split(/\n\n+/).map(par => `<p>${par.replace(/\n/g, '<br>')}</p>`).join('');
+      }
+
+      // Área de estudo
+      if (p.area_estudo && showSection('area', p.area_estudo)) {
+        document.getElementById('projeto-area').textContent = p.area_estudo;
+      }
+
+      // Cronograma
+      const etapas = NepaDB.parseCompound(p.cronograma, ['periodo', 'titulo', 'descricao', 'status']);
+      if (etapas.length && showSection('cronograma', '1')) {
+        document.getElementById('projeto-cronograma').innerHTML = etapas.map(et => {
+          const cls = et.status || 'futura';
+          const dotIcon = cls === 'concluida'
+            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+            : cls === 'atual'
+            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>'
+            : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="6"/></svg>';
+          return `
+            <div class="projeto-etapa ${cls}">
+              <div class="projeto-etapa-dot">${dotIcon}</div>
+              <div>
+                <div class="projeto-etapa-periodo">${et.periodo || ''}</div>
+                <div class="projeto-etapa-titulo">${et.titulo || ''}</div>
+                <div class="projeto-etapa-desc">${et.descricao || ''}</div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      // Equipe
+      const equipe = NepaDB.parseCompound(p.equipe, ['nome', 'papel']);
+      if (equipe.length && showSection('equipe', '1')) {
+        document.getElementById('projeto-equipe').innerHTML = equipe.map(m => `
+          <div class="projeto-membro-card">
+            <div class="projeto-membro-avatar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div class="projeto-membro-name">${m.nome || ''}</div>
+              <div class="projeto-membro-role">${m.papel || ''}</div>
+            </div>
+          </div>`).join('');
+      }
+
+      // Financiamento
+      const financ = NepaDB.parseCompound(p.financiamento_detalhe, ['sigla', 'desc', 'valor']);
+      if (financ.length && showSection('financ', '1')) {
+        document.getElementById('projeto-financiamento').innerHTML = financ.map(f => `
+          <div class="projeto-financ-item">
+            <div class="projeto-financ-logo">${f.sigla || ''}</div>
+            <div class="projeto-financ-desc">${f.desc || ''}</div>
+            <div class="projeto-financ-valor">${f.valor || ''}</div>
+          </div>`).join('');
+      }
+
+      // Palavras-chave
+      const keywords = NepaDB.parseList(p.palavras_chave);
+      if (keywords.length && showSection('keywords', '1')) {
+        document.getElementById('projeto-keywords').innerHTML = keywords.map(kw =>
+          `<a href="biblioteca.html?q=${encodeURIComponent(kw)}" class="projeto-tag">${kw}</a>`
+        ).join('');
+      }
+
+      // Publicações vinculadas
+      const pubIds = NepaDB.parseList(p.publicacoes_ids);
+      if (pubIds.length) {
+        const pubs = pubIds.map(id => NepaDB.findById('publicacoes', id)).filter(Boolean);
+        if (pubs.length && showSection('pubs', '1')) {
+          document.getElementById('projeto-publicacoes').innerHTML = pubs.map(pub => `
+            <div class="projeto-pub-item">
+              <div class="projeto-pub-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="projeto-pub-body">
+                <div class="projeto-pub-title">${pub.titulo || ''}</div>
+                <div class="projeto-pub-meta">${pub.autores || ''} · ${pub.publicado_em || ''}</div>
+              </div>
+              <a href="publicacao.html?id=${pub.id}" class="projeto-pub-link" aria-label="Ver publicação">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+              </a>
+            </div>`).join('');
+        }
+      }
+
+      // Resultados
+      if (p.resultados && showSection('resultados', p.resultados)) {
+        document.getElementById('projeto-resultados').innerHTML = String(p.resultados)
+          .split(/\n\n+/).map(par => `<p>${par.replace(/\n/g, '<br>')}</p>`).join('');
+      }
+
+      // SIDEBAR — progresso
+      const prog = parseInt(p.progresso, 10);
+      if (!isNaN(prog) && prog >= 0) {
+        document.getElementById('sidebar-progress-wrap').style.display = 'block';
+        document.getElementById('progresso-valor').textContent = `${prog}%`;
+        setTimeout(() => { document.getElementById('progresso-fill').style.width = `${prog}%`; }, 300);
+      }
+
+      // SIDEBAR — meta items
+      const meta = [];
+      if (p.periodo) meta.push({ label: 'Período', value: p.periodo, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' });
+      if (p.financiador) meta.push({ label: 'Financiador', value: p.financiador, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' });
+      if (p.pesquisadores_count) meta.push({ label: 'Equipe', value: p.pesquisadores_count, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' });
+      if (p.publicacoes_count) meta.push({ label: 'Publicações', value: p.publicacoes_count, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' });
+      if (linha) meta.push({ label: 'Linha de pesquisa', value: linha.titulo, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' });
+      if (p.area_estudo) meta.push({ label: 'Área de estudo', value: p.area_estudo.length > 60 ? p.area_estudo.substring(0, 60) + '...' : p.area_estudo, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' });
+      meta.push({ label: 'Situação', value: statusLabels[p.status] || 'Em andamento', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' });
+      if (p.contato) meta.push({ label: 'Contato', value: `<a href="mailto:${p.contato}">${p.contato}</a>`, icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' });
+
+      document.getElementById('sidebar-meta-list').innerHTML = meta.map(m => `
+        <div class="sidebar-meta-item">
+          <div class="sidebar-meta-icon">${m.icon}</div>
+          <div>
+            <span class="sidebar-meta-label">${m.label}</span>
+            <div class="sidebar-meta-value">${m.value}</div>
+          </div>
+        </div>`).join('');
+
+      // SIDEBAR — actions
+      const contatoEmail = p.contato || NepaDB.config('contato_email');
+      document.getElementById('sidebar-actions').innerHTML = `
+        <a href="mailto:${contatoEmail}" class="sidebar-btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Fale com o projeto
+        </a>
+        <a href="biblioteca.html" class="sidebar-btn-secondary">Ver biblioteca</a>
+        <a href="pesquisas.html" class="sidebar-btn-secondary">Outros projetos</a>`;
+    }
+
+    function renderFooter() {
+      document.getElementById('footer-descricao').textContent = NepaDB.config('site_descricao_curta');
+      document.getElementById('footer-endereco').textContent = NepaDB.config('contato_endereco');
+      const email = NepaDB.config('contato_email');
+      const link = document.getElementById('footer-email-link');
+      link.href = `mailto:${email}`;
+      link.textContent = email;
+      document.getElementById('footer-mapa').src = NepaDB.config('mapa_iframe_url');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // tema, menu, header, back to top — mesma boilerplate
+      const root = document.documentElement;
+      const themeToggle = document.getElementById('themeToggle');
+      const iconSun = document.getElementById('iconSun');
+      const iconMoon = document.getElementById('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      const menuBtn = document.getElementById('menu-btn');
+      const navbar = document.getElementById('navbar');
+      menuBtn.addEventListener('click', () => navbar.classList.toggle('active'));
+
+      const header = document.getElementById('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      const btt = document.getElementById('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      // Carregar dados
+      const params = new URLSearchParams(window.location.search);
+      const projetoId = params.get('id');
+
+      try {
+        await NepaDB.load(['projetos', 'linhas_pesquisa', 'publicacoes', 'config']);
+        renderFooter();
+
+        if (!projetoId) {
+          document.getElementById('loading-state').style.display = 'none';
+          document.getElementById('error-message').textContent = 'ID do projeto não especificado na URL.';
+          document.getElementById('error-state').style.display = 'block';
+          return;
+        }
+
+        const projeto = NepaDB.findById('projetos', projetoId);
+
+        document.getElementById('loading-state').style.display = 'none';
+        if (!projeto) {
+          document.getElementById('error-state').style.display = 'block';
+          return;
+        }
+
+        renderProjeto(projeto);
+        document.getElementById('projeto-detail-wrap').style.display = 'block';
+
+        // reveal on scroll
+        const revObs = new IntersectionObserver(entries => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+      } catch (err) {
+        console.error(err);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-message').textContent = 'Erro ao carregar database.xlsx.';
+        document.getElementById('error-state').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

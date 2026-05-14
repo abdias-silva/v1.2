@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membros | NEPA - UFMA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+  <style>
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+    .loading-spinner { width: 4rem; height: 4rem; border: 3px solid var(--verde-bg); border-top-color: var(--verde); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 2rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo"><img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" /></a>
+      <nav class="navbar" id="navbar">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Sobre</a>
+        <a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a>
+        <a href="pesquisas.html">Pesquisas</a>
+        <a href="membros.html" class="active-link">Membros</a>
+        <a href="index.html#eventos">Eventos</a>
+        <a href="index.html#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="navbar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <div class="page-hero-inner">
+        <span class="section-label">Quem faz o NEPA</span>
+        <h1 class="section-title">Membros do <span class="accent">Núcleo</span></h1>
+        <p>Conheça os pesquisadores, professores e estudantes que compõem o NEPA.</p>
+        <div class="page-hero-meta" id="hero-meta"></div>
+      </div>
+    </section>
+
+    <section class="content-section" id="membros-main">
+      <div class="section-container">
+        <div class="membros-filter-bar" role="tablist">
+          <button class="membros-filter-btn active" data-cat="todos">Todos</button>
+          <button class="membros-filter-btn" data-cat="coordenacao">Coordenação</button>
+          <button class="membros-filter-btn" data-cat="docentes">Docentes</button>
+          <button class="membros-filter-btn" data-cat="discentes">Discentes</button>
+          <button class="membros-filter-btn" data-cat="colaboradores">Colaboradores</button>
+          <button class="membros-filter-btn" data-cat="egressos">Egressos</button>
+        </div>
+        <div id="loading-state" style="text-align:center; padding:6rem 2rem;">
+          <div class="loading-spinner"></div>
+          <p style="font-size:1.5rem; color:var(--cinza-claro);">Carregando membros...</p>
+        </div>
+        <div id="categorias-wrap"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-section">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>(c) 2025 NEPA - UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+  </button>
+
+  <script>
+    const CATEGORIAS = [
+      { id: 'coordenacao',   nome: 'Coordenação' },
+      { id: 'docentes',      nome: 'Docentes' },
+      { id: 'discentes',     nome: 'Discentes' },
+      { id: 'colaboradores', nome: 'Colaboradores' },
+      { id: 'egressos',      nome: 'Egressos' },
+    ];
+    // Os ícones de Lattes/ORCID/E-mail e o card de membro agora vêm
+    // do helper NepaDB.membroCardHtml() — padronizado com o index.
+
+    function renderHeroMeta() {
+      const items = [1,2,3,4].map(n => ({
+        v: NepaDB.config('membros_estat_' + n + '_n'),
+        l: NepaDB.config('membros_estat_' + n + '_l')
+      })).filter(x => x.v);
+      document.getElementById('hero-meta').innerHTML = items.map(x =>
+        '<div class="page-hero-meta-item"><span class="meta-val">' + x.v + '</span><span class="meta-lbl">' + x.l + '</span></div>'
+      ).join('');
+    }
+
+    function renderMembroCard(m, index) {
+      return NepaDB.membroCardHtml(m);
+    }
+
+    function renderCategorias() {
+      const todos = NepaDB.sheet('membros');
+      const wrap = document.getElementById('categorias-wrap');
+      wrap.innerHTML = CATEGORIAS.map(cat => {
+        const membros = todos.filter(m => m.categoria === cat.id).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+        if (!membros.length) return '';
+        return '<div class="membros-category-section visible" data-cat="' + cat.id + '">' +
+          '<div class="categoria-header"><h2>' + cat.nome + '</h2><span class="categoria-count">' + membros.length + '</span></div>' +
+          '<div class="membros-grid">' + membros.map((m, i) => renderMembroCard(m, i)).join('') + '</div>' +
+          '</div>';
+      }).join('');
+      document.querySelectorAll('.membros-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.membros-filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const cat = btn.dataset.cat;
+          document.querySelectorAll('.membros-category-section').forEach(s => {
+            s.style.display = (cat === 'todos' || s.dataset.cat === cat) ? 'block' : 'none';
+          });
+        });
+      });
+    }
+
+    function renderFooter() {
+      document.getElementById('footer-descricao').textContent = NepaDB.config('site_descricao_curta');
+      document.getElementById('footer-endereco').textContent = NepaDB.config('contato_endereco');
+      const email = NepaDB.config('contato_email');
+      const link = document.getElementById('footer-email-link');
+      link.href = 'mailto:' + email;
+      link.textContent = email;
+      document.getElementById('footer-mapa').src = NepaDB.config('mapa_iframe_url');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const root = document.documentElement;
+      const themeToggle = document.getElementById('themeToggle');
+      const iconSun = document.getElementById('iconSun');
+      const iconMoon = document.getElementById('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      const menuBtn = document.getElementById('menu-btn');
+      const navbar = document.getElementById('navbar');
+      menuBtn.addEventListener('click', () => navbar.classList.toggle('active'));
+
+      const header = document.getElementById('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      const btt = document.getElementById('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      try {
+        await NepaDB.load(['membros', 'config']);
+        document.getElementById('loading-state').style.display = 'none';
+        renderHeroMeta();
+        renderCategorias();
+        renderFooter();
+        const revObs = new IntersectionObserver(entries => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+      } catch (err) {
+        document.getElementById('loading-state').innerHTML = '<p style="color:#c8641e;font-size:1.5rem;">Erro ao carregar database.xlsx.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

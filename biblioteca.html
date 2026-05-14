@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Biblioteca Digital do NEPA - Explore a coleção de artigos, livros, atlas e pesquisas." />
+  <title>Biblioteca Digital | NEPA - UFMA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+
+  <style>
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+
+    /* HERO vai ao topo (igual ao atlas/index) */
+    .biblioteca-hero {
+      margin-top: 0 !important;
+      padding: calc(var(--header-h) + 6rem) 3rem 6rem !important;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .biblioteca-hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(170,197,116,0.10) 0%, transparent 35%),
+        radial-gradient(circle at 80% 70%, rgba(170,197,116,0.08) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .biblioteca-hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; text-align: center; }
+    .biblioteca-hero .section-title { margin: 0 auto 1.6rem; }
+    .biblioteca-hero p { margin: 0 auto; }
+
+    /* Stats do hero (igual atlas) */
+    .biblioteca-hero-stats {
+      display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; margin-top: 2.5rem;
+    }
+    .biblioteca-hero-stat .num {
+      font-size: 3.6rem; font-weight: 800; color: var(--verde-claro);
+      display: block; line-height: 1;
+    }
+    .biblioteca-hero-stat .label {
+      font-size: 1.3rem; opacity: 0.85; margin-top: 0.5rem;
+      letter-spacing: 0.05em; text-transform: uppercase; display: block; color: #fff;
+    }
+
+    /* MAIN container */
+    .biblioteca-main {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 5rem 3rem 8rem;
+    }
+
+    /* CONTROLES (padrão atlas) */
+    .biblio-controls {
+      display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;
+      padding: 0 0 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 3rem;
+    }
+    .biblio-search { flex: 1; min-width: 280px; position: relative; }
+    .biblio-search input {
+      width: 100%; padding: 1.4rem 1.8rem 1.4rem 4.5rem;
+      font-size: 1.5rem; font-family: inherit;
+      border: 1.5px solid var(--border-color);
+      border-radius: 50px; background: var(--bg-secao);
+      color: var(--preto);
+      transition: var(--dur) var(--ease);
+    }
+    .biblio-search input:focus { outline: none; border-color: var(--verde); }
+    .biblio-search > svg {
+      position: absolute; left: 1.6rem; top: 50%;
+      transform: translateY(-50%); color: var(--cinza-claro);
+    }
+    .biblio-search-clear {
+      position: absolute; right: 1.2rem; top: 50%;
+      transform: translateY(-50%);
+      width: 2.8rem; height: 2.8rem; border-radius: 50%;
+      background: var(--verde-bg); border: none; color: var(--verde-escuro);
+      cursor: pointer; display: none;
+      align-items: center; justify-content: center;
+    }
+    .biblio-search-clear.visible { display: flex; }
+
+    .biblio-secondary {
+      display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    }
+    .biblio-sort {
+      padding: 1rem 1.6rem; font-size: 1.3rem; font-family: inherit;
+      border: 1.5px solid var(--border-color); border-radius: 50px;
+      background: var(--bg-secao); color: var(--cinza-texto); font-weight: 600;
+      cursor: pointer; transition: var(--dur) var(--ease);
+    }
+    .biblio-sort:hover { border-color: var(--verde); }
+    .view-toggle {
+      display: inline-flex; background: var(--bg-secao);
+      border: 1.5px solid var(--border-color); border-radius: 50px;
+      padding: 0.4rem; gap: 0.3rem;
+    }
+    .view-toggle button {
+      width: 3.6rem; height: 3.6rem; border-radius: 50%;
+      background: transparent; border: none; color: var(--cinza-claro);
+      cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center;
+      transition: var(--dur) var(--ease);
+    }
+    .view-toggle button:hover { color: var(--verde); }
+    .view-toggle button.active { background: var(--verde); color: #fff; }
+    .view-toggle svg { width: 1.6rem; height: 1.6rem; }
+
+    /* Botões de filtro de tipo (categorias) */
+    .biblio-cat-btns {
+      display: flex; gap: 0.8rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .biblio-cat-btn {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      padding: 0.9rem 1.6rem; border-radius: 50px;
+      background: var(--bg-secao); border: 1.5px solid var(--border-color);
+      color: var(--cinza-texto); font-size: 1.3rem; font-weight: 600;
+      cursor: pointer; transition: var(--dur) var(--ease);
+      font-family: inherit;
+    }
+    .biblio-cat-btn:hover { border-color: var(--verde); color: var(--verde); }
+    .biblio-cat-btn.active {
+      background: var(--verde); color: #fff; border-color: var(--verde);
+    }
+    .biblio-cat-btn .count {
+      background: rgba(255,255,255,0.25); color: inherit;
+      font-size: 1.1rem; padding: 0.15rem 0.7rem;
+      border-radius: 50px; font-weight: 700;
+    }
+    .biblio-cat-btn:not(.active) .count {
+      background: var(--verde-bg); color: var(--verde-escuro);
+    }
+
+    /* Info de resultados */
+    .biblio-info {
+      font-size: 1.35rem; color: var(--cinza-claro); margin-bottom: 2rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .biblio-info strong { color: var(--verde); font-weight: 700; }
+    .biblio-clear {
+      background: none; border: none; color: var(--verde);
+      font-size: 1.3rem; font-weight: 600; cursor: pointer;
+      font-family: inherit;
+      display: none; align-items: center; gap: 0.5rem;
+    }
+    .biblio-clear.visible { display: inline-flex; }
+
+    /* GRID — 2 colunas por padrão (em vez das 3 anteriores) */
+    .biblioteca-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+      margin-bottom: 4rem;
+    }
+    .biblioteca-grid.list-view {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    /* Animação stagger nos cards */
+    .biblioteca-grid .publication-card {
+      animation: cardFadeIn 0.5s var(--ease) backwards;
+    }
+    @keyframes cardFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Layout em LISTA */
+    .biblioteca-grid.list-view .publication-card {
+      flex-direction: row !important;
+      align-items: center;
+      padding: 2rem 2.5rem;
+      gap: 2rem;
+    }
+    .biblioteca-grid.list-view .pub-card-meta {
+      flex-direction: column; align-items: flex-start;
+      gap: 0.8rem; flex-shrink: 0; min-width: 12rem;
+    }
+    .biblioteca-grid.list-view .pub-card-title { font-size: 1.55rem; flex: 1; margin: 0; }
+    .biblioteca-grid.list-view .pub-card-authors { display: none; }
+    .biblioteca-grid.list-view .pub-card-footer {
+      flex-shrink: 0; padding-top: 0; border: none;
+      width: auto; gap: 1.5rem;
+    }
+
+    /* Badge destaque (estrela) */
+    .publication-card { position: relative; }
+    .pub-destaque-flag {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      width: 2.4rem; height: 2.4rem; border-radius: 50%;
+      background: var(--verde); color: #fff; font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(96,117,55,0.35); z-index: 2;
+    }
+
+    /* SKELETON */
+    .biblio-skeleton {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2.5rem;
+    }
+    .biblio-skeleton-card {
+      background: var(--bg-secao);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 2.4rem 2.2rem;
+      display: flex; flex-direction: column; gap: 1.2rem;
+      min-height: 22rem;
+    }
+    .skel-line {
+      height: 1.4rem; border-radius: 4px;
+      background: linear-gradient(90deg, var(--verde-bg) 0%, rgba(96,117,55,0.18) 50%, var(--verde-bg) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skel-line.short { width: 40%; }
+    .skel-line.medium { width: 75%; }
+    .skel-line.icon { width: 4.4rem; height: 4.4rem; border-radius: 6px; }
+
+    /* EMPTY STATE */
+    .biblio-empty {
+      grid-column: 1/-1;
+      text-align: center; padding: 8rem 2rem;
+      color: var(--cinza-claro);
+    }
+    .biblio-empty-icon {
+      width: 8rem; height: 8rem; border-radius: 50%;
+      background: var(--verde-bg);
+      color: var(--verde);
+      margin: 0 auto 2rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .biblio-empty-icon svg { width: 3.5rem; height: 3.5rem; }
+    .biblio-empty h3 {
+      font-family: var(--fonte-corpo); font-size: 1.8rem;
+      color: var(--preto); margin-bottom: 0.8rem;
+    }
+    .biblio-empty p { font-size: 1.4rem; max-width: 36rem; margin: 0 auto; }
+
+    /* LOAD MORE */
+    .load-more-btn-wrap { text-align: center; margin-top: 3rem; }
+
+    /* TOAST */
+    .biblio-toast {
+      position: fixed; bottom: 3rem; left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--verde); color: #fff;
+      padding: 1.2rem 2rem; border-radius: 50px;
+      font-size: 1.35rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 10000; opacity: 0;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      pointer-events: none;
+    }
+    .biblio-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .biblio-toast svg { width: 1.6rem; height: 1.6rem; }
+
+    @media (max-width: 900px) {
+      .biblioteca-grid, .biblio-skeleton { grid-template-columns: 1fr; }
+      .biblio-controls { flex-direction: column; align-items: stretch; }
+      .biblio-cat-btns { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 1rem; }
+      .biblio-cat-btn { white-space: nowrap; flex-shrink: 0; }
+      .biblioteca-grid.list-view .publication-card { flex-direction: column !important; align-items: stretch; }
+      .biblioteca-grid.list-view .pub-card-authors { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo"><img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" /></a>
+      <nav class="navbar" id="navbar">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Sobre</a>
+        <a href="biblioteca.html" class="active-link">Biblioteca</a>
+        <a href="atlas.html">Atlas</a>
+        <a href="pesquisas.html">Pesquisas</a>
+        <a href="membros.html">Membros</a>
+        <a href="index.html#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="biblioteca-hero">
+      <div class="biblioteca-hero-inner">
+        <span class="section-label">Acervo científico</span>
+        <h1 class="section-title">Biblioteca <span style="color:var(--verde-claro)">Digital</span></h1>
+        <p>Explore a coleção de artigos, livros, atlas e pesquisas desenvolvidas pelo NEPA ao longo de mais de 15 anos de atividade científica e extensionista.</p>
+        <div class="biblioteca-hero-stats" id="hero-stats"></div>
+      </div>
+    </section>
+
+    <div class="biblioteca-main">
+
+      <!-- Controles superiores: busca + sort + view -->
+      <div class="biblio-controls">
+        <div class="biblio-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="search-input" placeholder="Buscar por título, autor ou palavra-chave..." aria-label="Buscar publicações" autocomplete="off" />
+          <button class="biblio-search-clear" id="search-clear" aria-label="Limpar busca">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="biblio-secondary">
+          <select class="biblio-sort" id="sort-select" aria-label="Ordenar publicações">
+            <option value="recentes">Mais recentes</option>
+            <option value="antigos">Mais antigos</option>
+            <option value="az">Título (A-Z)</option>
+            <option value="za">Título (Z-A)</option>
+          </select>
+          <div class="view-toggle" role="group">
+            <button class="active" data-view="grid" title="Visualização em grade" aria-label="Grade">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button data-view="list" title="Visualização em lista" aria-label="Lista">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorias de tipo (com contagem) -->
+      <div class="biblio-cat-btns" id="cat-btns"></div>
+
+      <!-- Info de resultados + limpar filtros -->
+      <div class="biblio-info">
+        <span id="results-count"></span>
+        <button class="biblio-clear" id="clear-filters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Limpar filtros
+        </button>
+      </div>
+
+      <!-- Grid de publicações -->
+      <div class="biblioteca-grid" id="publications-list">
+        <div class="biblio-skeleton">
+          <div class="biblio-skeleton-card"><div style="display:flex;gap:1rem;align-items:center;"><div class="skel-line icon"></div><div class="skel-line short" style="height:2rem;"></div></div><div class="skel-line"></div><div class="skel-line medium"></div><div class="skel-line short"></div></div>
+          <div class="biblio-skeleton-card"><div style="display:flex;gap:1rem;align-items:center;"><div class="skel-line icon"></div><div class="skel-line short" style="height:2rem;"></div></div><div class="skel-line"></div><div class="skel-line medium"></div><div class="skel-line short"></div></div>
+        </div>
+      </div>
+
+      <div class="load-more-btn-wrap" id="load-more-wrap" style="display:none;">
+        <button class="btn btn-outline" id="load-more-btn">
+          Carregar mais publicações
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- TOAST -->
+  <div class="biblio-toast" id="biblio-toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+    <span id="biblio-toast-text"></span>
+  </div>
+
+  <footer class="footer-section">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="biblioteca.html">Biblioteca digital</a></li>
+          <li><a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>(c) 2025 NEPA - UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+  </button>
+
+  <script>
+    // ============================================================
+    // CATEGORIAS DE TIPO
+    // ============================================================
+    const TIPOS = [
+      { id: 'todos',      nome: 'Todos' },
+      { id: 'artigo',     nome: 'Artigo' },
+      { id: 'livro',      nome: 'Livro' },
+      { id: 'revista',    nome: 'Revista' },
+      { id: 'anais',      nome: 'Anais' },
+      { id: 'monografia', nome: 'Monografia' },
+      { id: 'atlas',      nome: 'Atlas' },
+      { id: 'tese',       nome: 'Tese' },
+      { id: 'dissertacao',nome: 'Dissertação' },
+      { id: 'relatorio',  nome: 'Relatório' },
+    ];
+
+    const ITEMS_PER_PAGE = 12;
+    const STATE = {
+      all: [],
+      filtered: [],
+      tipo: 'todos',
+      term: '',
+      sort: 'recentes',
+      view: 'grid',
+      visible: ITEMS_PER_PAGE,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function showToast(text) {
+      $('biblio-toast-text').textContent = text;
+      $('biblio-toast').classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => $('biblio-toast').classList.remove('show'), 2500);
+    }
+
+    // ============================================================
+    // RENDER: HERO STATS
+    // ============================================================
+    function renderHeroStats() {
+      const total = STATE.all.length;
+      const tiposCount = new Set(STATE.all.map(p => String(p.tipo || '').toLowerCase()).filter(Boolean)).size;
+      const anos = STATE.all
+        .map(p => parseInt((String(p.publicado_em || '').match(/\d{4}/) || [''])[0]))
+        .filter(Boolean);
+      const minAno = anos.length ? Math.min(...anos) : '';
+      const maxAno = anos.length ? Math.max(...anos) : '';
+      const periodo = (minAno && maxAno && minAno !== maxAno) ? minAno + '-' + maxAno : (maxAno || '—');
+
+      const stats = [
+        { num: total + '+', label: 'Publicações' },
+        { num: tiposCount, label: 'Tipos de obra' },
+        { num: periodo, label: 'Período' },
+      ];
+      $('hero-stats').innerHTML = stats.map(s =>
+        '<div class="biblioteca-hero-stat"><span class="num">' + s.num + '</span><span class="label">' + s.label + '</span></div>'
+      ).join('');
+    }
+
+    // ============================================================
+    // RENDER: BOTÕES DE TIPO (com contagem)
+    // ============================================================
+    function renderCatButtons() {
+      const counts = {};
+      STATE.all.forEach(p => {
+        const t = String(p.tipo || '').toLowerCase();
+        counts[t] = (counts[t] || 0) + 1;
+      });
+      counts['todos'] = STATE.all.length;
+
+      // Só mostra tipos que têm registros
+      const visible = TIPOS.filter(t => t.id === 'todos' || counts[t.id] > 0);
+
+      $('cat-btns').innerHTML = visible.map(t =>
+        '<button class="biblio-cat-btn ' + (t.id === STATE.tipo ? 'active' : '') + '" data-tipo="' + t.id + '">' +
+          t.nome +
+          ' <span class="count">' + (counts[t.id] || 0) + '</span>' +
+        '</button>'
+      ).join('');
+
+      $('cat-btns').querySelectorAll('.biblio-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          STATE.tipo = btn.dataset.tipo;
+          STATE.visible = ITEMS_PER_PAGE;
+          $('cat-btns').querySelectorAll('.biblio-cat-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderPublications();
+          updateClearBtn();
+        });
+      });
+    }
+
+    // ============================================================
+    // FILTRO + ORDENAÇÃO
+    // ============================================================
+    function getFiltered() {
+      const term = STATE.term.toLowerCase().trim();
+      let result = STATE.all.filter(pub => {
+        const matchTipo = STATE.tipo === 'todos' || String(pub.tipo || '').toLowerCase() === STATE.tipo;
+        const matchSearch = !term
+          || (pub.titulo && pub.titulo.toLowerCase().includes(term))
+          || (pub.autores && pub.autores.toLowerCase().includes(term))
+          || (pub.palavras_chave && pub.palavras_chave.toLowerCase().includes(term));
+        return matchTipo && matchSearch;
+      });
+
+      const sorters = {
+        recentes: (a, b) => (b.id || 0) - (a.id || 0),
+        antigos:  (a, b) => (a.id || 0) - (b.id || 0),
+        az: (a, b) => String(a.titulo || '').localeCompare(String(b.titulo || ''), 'pt-BR'),
+        za: (a, b) => String(b.titulo || '').localeCompare(String(a.titulo || ''), 'pt-BR'),
+      };
+      result.sort(sorters[STATE.sort] || sorters.recentes);
+      STATE.filtered = result;
+      return result;
+    }
+
+    function updateClearBtn() {
+      const has = STATE.tipo !== 'todos' || STATE.term;
+      $('clear-filters').classList.toggle('visible', has);
+    }
+
+    // ============================================================
+    // RENDER: GRID
+    // ============================================================
+    function renderPublications() {
+      const list = $('publications-list');
+      const counter = $('results-count');
+      const moreWrap = $('load-more-wrap');
+
+      const filtered = getFiltered();
+      const total = filtered.length;
+      const slice = filtered.slice(0, STATE.visible);
+
+      // View class
+      list.className = 'biblioteca-grid' + (STATE.view === 'list' ? ' list-view' : '');
+
+      if (total === 0) {
+        list.innerHTML = '<div class="biblio-empty">' +
+          '<div class="biblio-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>' +
+          '<h3>Nenhuma publicação encontrada</h3>' +
+          '<p>Tente ajustar o termo de busca ou os filtros aplicados.</p></div>';
+        counter.innerHTML = '<strong>0</strong> resultado(s)';
+        moreWrap.style.display = 'none';
+        return;
+      }
+
+      // Render com stagger
+      list.innerHTML = slice.map((pub, i) => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = NepaDB.publicationCardHtml(pub);
+        const card = wrap.firstElementChild;
+        card.style.animationDelay = ((i % ITEMS_PER_PAGE) * 0.04) + 's';
+        return card.outerHTML;
+      }).join('');
+
+      counter.innerHTML = 'Exibindo <strong>' + Math.min(slice.length, total) + '</strong> de <strong>' + total + '</strong> publicação(ões)';
+      moreWrap.style.display = STATE.visible < total ? 'block' : 'none';
+    }
+
+    // ============================================================
+    // FOOTER
+    // ============================================================
+    function renderFooter() {
+      $('footer-descricao').textContent = NepaDB.config('site_descricao_curta');
+      $('footer-endereco').textContent = NepaDB.config('contato_endereco');
+      const email = NepaDB.config('contato_email');
+      const link = $('footer-email-link');
+      link.href = 'mailto:' + email;
+      link.textContent = email;
+      $('footer-mapa').src = NepaDB.config('mapa_iframe_url');
+    }
+
+    // ============================================================
+    // BOOT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Tema
+      const root = document.documentElement;
+      const themeToggle = $('themeToggle');
+      const iconSun = $('iconSun');
+      const iconMoon = $('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      // Menu
+      $('menu-btn').addEventListener('click', () => $('navbar').classList.toggle('active'));
+
+      // Header scroll
+      const header = $('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      // Back to top
+      const btt = $('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      try {
+        await NepaDB.load(['publicacoes', 'config']);
+        STATE.all = NepaDB.sheet('publicacoes');
+        renderFooter();
+        renderHeroStats();
+        renderCatButtons();
+
+        // URL: ?q=termo
+        const urlParams = new URLSearchParams(window.location.search);
+        const qParam = urlParams.get('q');
+        if (qParam) {
+          $('search-input').value = qParam;
+          STATE.term = qParam;
+          $('search-clear').classList.add('visible');
+        }
+
+        renderPublications();
+        updateClearBtn();
+
+        // Busca
+        let searchTimer;
+        $('search-input').addEventListener('input', (e) => {
+          clearTimeout(searchTimer);
+          $('search-clear').classList.toggle('visible', !!e.target.value);
+          searchTimer = setTimeout(() => {
+            STATE.term = e.target.value;
+            STATE.visible = ITEMS_PER_PAGE;
+            renderPublications();
+            updateClearBtn();
+          }, 220);
+        });
+        $('search-clear').addEventListener('click', () => {
+          $('search-input').value = '';
+          STATE.term = '';
+          $('search-clear').classList.remove('visible');
+          STATE.visible = ITEMS_PER_PAGE;
+          renderPublications();
+          updateClearBtn();
+        });
+
+        // Sort
+        $('sort-select').addEventListener('change', (e) => {
+          STATE.sort = e.target.value;
+          STATE.visible = ITEMS_PER_PAGE;
+          renderPublications();
+        });
+
+        // View
+        document.querySelectorAll('.view-toggle button').forEach(b => {
+          b.addEventListener('click', () => {
+            document.querySelectorAll('.view-toggle button').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            STATE.view = b.dataset.view;
+            renderPublications();
+          });
+        });
+
+        // Load more
+        $('load-more-btn').addEventListener('click', () => {
+          STATE.visible += ITEMS_PER_PAGE;
+          renderPublications();
+        });
+
+        // Limpar filtros
+        $('clear-filters').addEventListener('click', () => {
+          STATE.tipo = 'todos';
+          STATE.term = '';
+          STATE.visible = ITEMS_PER_PAGE;
+          $('search-input').value = '';
+          $('search-clear').classList.remove('visible');
+          renderCatButtons();
+          renderPublications();
+          updateClearBtn();
+        });
+
+      } catch (err) {
+        $('publications-list').innerHTML = '<div class="biblio-empty">' +
+          '<div class="biblio-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>' +
+          '<h3>Não foi possível carregar a base de dados</h3>' +
+          '<p>Verifique se o arquivo database.xlsx está disponível no servidor.</p></div>';
+        $('results-count').textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>

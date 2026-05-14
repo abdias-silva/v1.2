@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Atlas do NEPA - Mapas físicos, sociais, econômicos e ambientais do Maranhão." />
+  <title>Atlas | NEPA - UFMA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+
+  <style>
+    /* ============================================================
+       PÁGINA ATLAS — versão interativa
+    ============================================================ */
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+    .atlas-cat-icon svg { width: 100%; height: 100%; stroke-width: 1.6; }
+
+    /* HERO --------------------------------------------------- */
+    .atlas-hero {
+      background: linear-gradient(135deg, #1a3010 0%, #2d4a1e 60%, #4c5c2a 100%);
+      color: #fff;
+      padding: calc(var(--header-h) + 7rem) 3rem 5rem;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .atlas-hero::before {
+      content: ""; position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(170,197,116,0.1) 0%, transparent 35%),
+        radial-gradient(circle at 80% 70%, rgba(170,197,116,0.08) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .atlas-hero-inner { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+    .atlas-hero h1 {
+      font-size: clamp(3.2rem, 5vw, 5.2rem);
+      color: #fff; font-weight: 800;
+      margin-bottom: 1.6rem; line-height: 1.1;
+    }
+    .atlas-hero h1 .accent { color: var(--verde-claro); }
+    .atlas-hero p { font-size: 1.7rem; opacity: 0.92; max-width: 700px; margin: 0 auto 3rem; }
+    .atlas-hero-stats {
+      display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; margin-top: 2.5rem;
+    }
+    .atlas-hero-stat .num {
+      font-size: 3.8rem; font-weight: 800; color: var(--verde-claro);
+      display: block; line-height: 1;
+    }
+    .atlas-hero-stat .label {
+      font-size: 1.3rem; opacity: 0.85; margin-top: 0.5rem;
+      letter-spacing: 0.05em; text-transform: uppercase; display: block;
+    }
+
+    /* CONTROLES --------------------------------------------- */
+    .atlas-categorias { max-width: var(--max-width); margin: 0 auto; padding: 0 3rem; }
+    .atlas-controls {
+      display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;
+      padding: 3rem 0 2.5rem; border-bottom: 1px solid var(--border-color);
+      margin-bottom: 3rem;
+    }
+    .atlas-search { flex: 1; min-width: 280px; position: relative; }
+    .atlas-search input {
+      width: 100%; padding: 1.4rem 1.8rem 1.4rem 4.5rem;
+      font-size: 1.5rem; font-family: inherit;
+      border: 1.5px solid var(--border-color);
+      border-radius: 50px; background: var(--bg-secao);
+      color: var(--preto);
+      transition: var(--dur) var(--ease);
+    }
+    .atlas-search input:focus { outline: none; border-color: var(--verde); }
+    .atlas-search > svg {
+      position: absolute; left: 1.6rem; top: 50%;
+      transform: translateY(-50%); color: var(--cinza-claro);
+    }
+    .atlas-search-clear {
+      position: absolute; right: 1.2rem; top: 50%;
+      transform: translateY(-50%);
+      width: 2.8rem; height: 2.8rem; border-radius: 50%;
+      background: var(--verde-bg); border: none; color: var(--verde-escuro);
+      cursor: pointer; display: none;
+      align-items: center; justify-content: center;
+    }
+    .atlas-search-clear.visible { display: flex; }
+
+    /* Botões secundários: sort, view, favoritos */
+    .atlas-secondary-controls {
+      display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    }
+    .atlas-sort {
+      padding: 1rem 1.6rem; font-size: 1.3rem; font-family: inherit;
+      border: 1.5px solid var(--border-color); border-radius: 50px;
+      background: var(--bg-secao); color: var(--cinza-texto); font-weight: 600;
+      cursor: pointer; transition: var(--dur) var(--ease);
+    }
+    .atlas-sort:hover { border-color: var(--verde); }
+
+    .atlas-btn-icon {
+      width: 4.4rem; height: 4.4rem; border-radius: 50%;
+      background: var(--bg-secao); border: 1.5px solid var(--border-color);
+      color: var(--cinza-texto); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: var(--dur) var(--ease);
+    }
+    .atlas-btn-icon:hover { border-color: var(--verde); color: var(--verde); }
+    .atlas-btn-icon.active { background: var(--verde); color: #fff; border-color: var(--verde); }
+    .atlas-btn-icon svg { width: 2rem; height: 2rem; }
+
+    .view-toggle {
+      display: inline-flex; background: var(--bg-secao);
+      border: 1.5px solid var(--border-color); border-radius: 50px;
+      padding: 0.4rem; gap: 0.3rem;
+    }
+    .view-toggle button {
+      width: 3.6rem; height: 3.6rem; border-radius: 50%;
+      background: transparent; border: none; color: var(--cinza-claro);
+      cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center;
+      transition: var(--dur) var(--ease);
+    }
+    .view-toggle button:hover { color: var(--verde); }
+    .view-toggle button.active { background: var(--verde); color: #fff; }
+    .view-toggle svg { width: 1.6rem; height: 1.6rem; }
+
+    /* Categorias --------------------------------------------- */
+    .atlas-cat-btns {
+      display: flex; gap: 0.8rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .atlas-cat-btn {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      padding: 0.9rem 1.6rem; border-radius: 50px;
+      background: var(--bg-secao); border: 1.5px solid var(--border-color);
+      color: var(--cinza-texto); font-size: 1.3rem; font-weight: 600;
+      cursor: pointer; transition: var(--dur) var(--ease);
+      font-family: inherit; position: relative;
+    }
+    .atlas-cat-btn svg { width: 1.5rem; height: 1.5rem; }
+    .atlas-cat-btn:hover { border-color: var(--verde); color: var(--verde); }
+    .atlas-cat-btn.active {
+      background: var(--verde); color: #fff; border-color: var(--verde);
+    }
+    .atlas-cat-btn .cat-count {
+      background: rgba(255,255,255,0.25); color: inherit;
+      font-size: 1.1rem; padding: 0.15rem 0.7rem;
+      border-radius: 50px; font-weight: 700;
+    }
+    .atlas-cat-btn:not(.active) .cat-count {
+      background: var(--verde-bg); color: var(--verde-escuro);
+    }
+
+    .atlas-results-info {
+      font-size: 1.35rem; color: var(--cinza-claro); margin-bottom: 2rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .atlas-results-info strong { color: var(--verde); font-weight: 700; }
+    .atlas-clear-filters {
+      background: none; border: none; color: var(--verde);
+      font-size: 1.3rem; font-weight: 600; cursor: pointer;
+      font-family: inherit;
+      display: none; align-items: center; gap: 0.5rem;
+    }
+    .atlas-clear-filters.visible { display: inline-flex; }
+    .atlas-clear-filters:hover { color: var(--verde-escuro); }
+
+    /* GRID --------------------------------------------------- */
+    .atlas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 3rem;
+      margin-bottom: 6rem;
+    }
+    .atlas-grid.list-view {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    /* CARD --------------------------------------------------- */
+    .atlas-card {
+      background: var(--bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s var(--ease);
+      display: flex; flex-direction: column;
+      position: relative;
+      animation: cardFadeIn 0.5s var(--ease) backwards;
+    }
+    @keyframes cardFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .atlas-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--sombra-md);
+      border-color: rgba(96, 117, 55, 0.35);
+    }
+
+    /* List view layout */
+    .atlas-grid.list-view .atlas-card {
+      flex-direction: row;
+    }
+    .atlas-grid.list-view .atlas-card-thumb {
+      width: 28rem; flex-shrink: 0; aspect-ratio: auto;
+      height: auto;
+    }
+    .atlas-grid.list-view .atlas-card-body { flex: 1; }
+
+    .atlas-card-thumb {
+      position: relative; aspect-ratio: 4/3; overflow: hidden;
+      background: var(--verde-bg); cursor: pointer;
+    }
+    .atlas-card-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.5s var(--ease);
+    }
+    .atlas-card:hover .atlas-card-thumb img { transform: scale(1.05); }
+    .atlas-card-thumb-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--verde-bg), rgba(96, 117, 55, 0.15));
+      color: var(--verde);
+    }
+    .atlas-card-thumb-placeholder svg { width: 30%; height: 30%; opacity: 0.5; }
+    .atlas-card-overlay {
+      position: absolute; inset: 0;
+      background: rgba(25, 57, 0, 0.7);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.25s var(--ease);
+    }
+    .atlas-card-thumb:hover .atlas-card-overlay { opacity: 1; }
+    .atlas-card-overlay span {
+      color: #fff; font-size: 1.5rem; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 0.8rem;
+      padding: 1rem 2rem; background: rgba(255,255,255,0.15);
+      border: 1.5px solid #fff; border-radius: 50px;
+      backdrop-filter: blur(8px);
+    }
+    .atlas-card-cat-tag {
+      position: absolute; top: 1.2rem; left: 1.2rem;
+      background: rgba(255,255,255,0.95);
+      color: var(--verde-escuro); font-size: 1.15rem; font-weight: 700;
+      padding: 0.5rem 1.2rem; border-radius: 50px;
+      backdrop-filter: blur(6px);
+      letter-spacing: 0.04em; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      max-width: calc(100% - 6rem);
+    }
+    .atlas-card-cat-tag svg { width: 1.3rem; height: 1.3rem; flex-shrink: 0; }
+    .atlas-card-badges {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      display: flex; flex-direction: column; gap: 0.6rem; z-index: 2;
+    }
+    .atlas-card-badge {
+      width: 2.6rem; height: 2.6rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-size: 1.3rem; font-weight: 700;
+    }
+    .atlas-card-badge.destaque { background: var(--verde); color: #fff; }
+    .atlas-card-badge.novo {
+      background: #d68538; color: #fff;
+      width: auto; padding: 0.3rem 0.9rem; font-size: 1.1rem;
+      border-radius: 50px;
+    }
+
+    /* Favoritar */
+    .atlas-card-fav {
+      position: absolute; bottom: 1.2rem; right: 1.2rem; z-index: 2;
+      width: 3.6rem; height: 3.6rem; border-radius: 50%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      cursor: pointer; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s var(--ease);
+    }
+    .atlas-card-fav:hover { transform: scale(1.1); background: rgba(0,0,0,0.7); }
+    .atlas-card-fav svg { width: 1.8rem; height: 1.8rem; transition: var(--dur) var(--ease); }
+    .atlas-card-fav.is-fav { background: var(--verde); border-color: var(--verde); }
+    .atlas-card-fav.is-fav svg { fill: #fff; }
+
+    .atlas-card-body {
+      padding: 2.4rem 2.5rem;
+      display: flex; flex-direction: column;
+      gap: 1.2rem; flex: 1;
+    }
+    .atlas-card-tema {
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--verde); letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .atlas-card-body h3 {
+      font-family: var(--fonte-corpo);
+      font-size: 1.7rem; font-weight: 700;
+      color: var(--preto); line-height: 1.3;
+    }
+    .atlas-card-meta {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      font-size: 1.3rem; color: var(--cinza-claro);
+    }
+    .atlas-card-meta-item {
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .atlas-card-meta-item svg {
+      width: 1.4rem; height: 1.4rem;
+      color: var(--verde); flex-shrink: 0;
+    }
+    .atlas-card-actions {
+      display: flex; gap: 1rem; margin-top: auto;
+      padding-top: 1.5rem; border-top: 1px solid var(--border-color);
+    }
+    .atlas-card-actions a {
+      flex: 1; text-align: center;
+      padding: 1rem 1.4rem; font-size: 1.3rem; font-weight: 600;
+      border-radius: 8px; transition: var(--dur) var(--ease);
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.5rem; cursor: pointer;
+    }
+    .atlas-card-actions svg { width: 1.4rem; height: 1.4rem; }
+    .atlas-btn-view { background: var(--verde); color: #fff; border: 1.5px solid var(--verde); }
+    .atlas-btn-view:hover { background: var(--verde-escuro); border-color: var(--verde-escuro); }
+    .atlas-btn-download {
+      background: transparent; color: var(--verde);
+      border: 1.5px solid rgba(96, 117, 55, 0.3);
+    }
+    .atlas-btn-download:hover { background: var(--verde-bg); border-color: var(--verde); }
+
+    /* ===== MODAL — versão melhorada ===== */
+    .atlas-modal {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0, 0, 0, 0.94);
+      display: none;
+      align-items: stretch; justify-content: stretch;
+      animation: fadeIn 0.3s var(--ease);
+    }
+    .atlas-modal.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .atlas-modal-container {
+      display: grid;
+      grid-template-columns: 1fr 38rem;
+      width: 100%; height: 100%;
+      gap: 0;
+    }
+
+    /* Lado esquerdo: viewer com zoom/pan */
+    .atlas-modal-viewer {
+      position: relative; overflow: hidden;
+      background: #0a0f06;
+      display: flex; align-items: center; justify-content: center;
+      cursor: grab;
+    }
+    .atlas-modal-viewer.dragging { cursor: grabbing; }
+    .atlas-modal-img-wrap {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+      max-width: 95%; max-height: 90%;
+    }
+    .atlas-modal-img-wrap img {
+      max-width: 100%; max-height: 100%;
+      display: block; user-select: none; -webkit-user-drag: none;
+      background: #fff; border-radius: 8px;
+    }
+    .atlas-modal-img-wrap.no-transition { transition: none; }
+
+    /* Controles flutuantes do viewer */
+    .atlas-modal-controls {
+      position: absolute; bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 0.5rem; padding: 0.8rem;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(12px);
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .atlas-modal-control-btn {
+      width: 4rem; height: 4rem; border-radius: 50%;
+      background: transparent; border: none; color: #fff;
+      cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center;
+      transition: background 0.2s var(--ease);
+    }
+    .atlas-modal-control-btn:hover { background: rgba(255,255,255,0.15); }
+    .atlas-modal-control-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .atlas-modal-control-btn svg { width: 1.8rem; height: 1.8rem; }
+    .atlas-modal-zoom-text {
+      color: #fff; font-size: 1.2rem; font-weight: 600;
+      align-self: center; padding: 0 1rem;
+      min-width: 5rem; text-align: center;
+    }
+
+    /* Setas de navegação */
+    .atlas-modal-nav {
+      position: absolute; top: 50%;
+      transform: translateY(-50%);
+      width: 5rem; height: 5rem; border-radius: 50%;
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s var(--ease);
+      z-index: 5;
+    }
+    .atlas-modal-nav:hover { background: rgba(0,0,0,0.85); transform: translateY(-50%) scale(1.05); }
+    .atlas-modal-nav.prev { left: 2rem; }
+    .atlas-modal-nav.next { right: 2rem; }
+    .atlas-modal-nav svg { width: 2rem; height: 2rem; }
+    .atlas-modal-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Sidebar com info do mapa */
+    .atlas-modal-sidebar {
+      background: var(--bg);
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .atlas-modal-sidebar-header {
+      padding: 2.5rem 2.5rem 2rem;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; background: var(--bg); z-index: 2;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+    }
+    .atlas-modal-cat-tag-large {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      background: var(--verde-bg); color: var(--verde-escuro);
+      padding: 0.5rem 1.2rem; border-radius: 50px;
+      font-size: 1.15rem; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase; margin-bottom: 1.2rem;
+    }
+    .atlas-modal-cat-tag-large svg { width: 1.3rem; height: 1.3rem; }
+    .atlas-modal-title {
+      font-family: var(--fonte-corpo);
+      font-size: 2.2rem; font-weight: 700;
+      color: var(--preto); line-height: 1.25; margin-top: 0;
+    }
+    .atlas-modal-close {
+      width: 4rem; height: 4rem; border-radius: 50%;
+      background: var(--bg-secao);
+      border: 1px solid var(--border-color);
+      color: var(--cinza-texto); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--dur) var(--ease); flex-shrink: 0;
+    }
+    .atlas-modal-close:hover { background: var(--verde); color: #fff; }
+    .atlas-modal-close svg { width: 1.8rem; height: 1.8rem; }
+
+    .atlas-modal-body { padding: 2.5rem; flex: 1; }
+    .atlas-modal-section { margin-bottom: 2.5rem; }
+    .atlas-modal-section h4 {
+      font-size: 1.15rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--verde);
+      font-weight: 700; margin-bottom: 0.8rem;
+    }
+    .atlas-modal-section p, .atlas-modal-section li {
+      font-size: 1.4rem; color: var(--cinza-texto); line-height: 1.6;
+    }
+    .atlas-modal-info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+    }
+    .atlas-modal-info-item {
+      padding: 1.2rem;
+      background: var(--bg-secao);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .atlas-modal-info-item label {
+      font-size: 1.1rem; color: var(--cinza-claro);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      font-weight: 700; display: block; margin-bottom: 0.4rem;
+    }
+    .atlas-modal-info-item span {
+      font-size: 1.35rem; color: var(--preto); font-weight: 600;
+    }
+    .atlas-modal-tags {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+    }
+    .atlas-modal-tag {
+      padding: 0.5rem 1.2rem; font-size: 1.2rem;
+      background: var(--verde-bg); color: var(--verde-escuro);
+      border-radius: 50px; cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: var(--dur) var(--ease);
+    }
+    .atlas-modal-tag:hover {
+      border-color: var(--verde); background: var(--verde); color: #fff;
+    }
+
+    .atlas-modal-actions {
+      display: flex; gap: 1rem; margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .atlas-modal-actions .btn-action {
+      flex: 1; min-width: 12rem;
+      padding: 1.2rem 1.6rem; font-size: 1.35rem; font-weight: 600;
+      border-radius: 50px; cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 0.7rem; transition: var(--dur) var(--ease);
+      text-decoration: none;
+    }
+    .atlas-modal-actions svg { width: 1.5rem; height: 1.5rem; }
+    .atlas-modal-actions .btn-download {
+      background: var(--verde); color: #fff; border: 1.5px solid var(--verde);
+    }
+    .atlas-modal-actions .btn-download:hover {
+      background: var(--verde-escuro); border-color: var(--verde-escuro);
+    }
+    .atlas-modal-actions .btn-share,
+    .atlas-modal-actions .btn-fav-modal {
+      background: transparent; color: var(--verde);
+      border: 1.5px solid rgba(96, 117, 55, 0.3);
+    }
+    .atlas-modal-actions .btn-share:hover,
+    .atlas-modal-actions .btn-fav-modal:hover {
+      background: var(--verde-bg); border-color: var(--verde);
+    }
+    .atlas-modal-actions .btn-fav-modal.is-fav {
+      background: var(--verde); color: #fff; border-color: var(--verde);
+    }
+    .atlas-modal-actions .btn-fav-modal.is-fav svg { fill: #fff; }
+
+    /* Mapas relacionados */
+    .atlas-related-list { display: flex; flex-direction: column; gap: 1rem; }
+    .atlas-related-item {
+      display: flex; gap: 1.2rem; padding: 1rem;
+      background: var(--bg-secao);
+      border: 1px solid var(--border-color);
+      border-radius: 8px; cursor: pointer;
+      transition: var(--dur) var(--ease);
+    }
+    .atlas-related-item:hover {
+      border-color: var(--verde);
+      transform: translateX(4px);
+    }
+    .atlas-related-thumb {
+      width: 6rem; height: 6rem; border-radius: 6px;
+      background: var(--verde-bg);
+      flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .atlas-related-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .atlas-related-thumb svg { width: 50%; height: 50%; opacity: 0.4; color: var(--verde); }
+    .atlas-related-info { flex: 1; min-width: 0; }
+    .atlas-related-info span {
+      font-size: 1.1rem; color: var(--verde); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .atlas-related-info h5 {
+      font-family: var(--fonte-corpo); font-size: 1.35rem;
+      font-weight: 600; color: var(--preto);
+      margin-top: 0.2rem;
+      overflow: hidden; text-overflow: ellipsis;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+
+    /* Skeleton loader */
+    .atlas-skeleton {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 3rem;
+    }
+    .atlas-skeleton-card {
+      background: var(--bg-secao);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .atlas-skeleton-thumb {
+      aspect-ratio: 4/3;
+      background: linear-gradient(90deg, var(--verde-bg) 0%, rgba(96,117,55,0.18) 50%, var(--verde-bg) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .atlas-skeleton-body { padding: 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+    .atlas-skeleton-line {
+      height: 1.4rem; border-radius: 4px;
+      background: linear-gradient(90deg, var(--verde-bg) 0%, rgba(96,117,55,0.18) 50%, var(--verde-bg) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .atlas-skeleton-line.short { width: 50%; }
+    .atlas-skeleton-line.medium { width: 75%; }
+
+    /* Estado vazio */
+    .atlas-empty {
+      grid-column: 1/-1;
+      text-align: center; padding: 8rem 2rem;
+      color: var(--cinza-claro);
+    }
+    .atlas-empty-icon {
+      width: 8rem; height: 8rem; border-radius: 50%;
+      background: var(--verde-bg);
+      color: var(--verde);
+      margin: 0 auto 2rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .atlas-empty-icon svg { width: 3.5rem; height: 3.5rem; }
+    .atlas-empty h3 {
+      font-family: var(--fonte-corpo); font-size: 1.8rem;
+      color: var(--preto); margin-bottom: 0.8rem;
+    }
+    .atlas-empty p { font-size: 1.4rem; max-width: 36rem; margin: 0 auto; }
+
+    /* Toast de feedback (compartilhar copiado) */
+    .atlas-toast {
+      position: fixed; bottom: 3rem; left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--verde); color: #fff;
+      padding: 1.2rem 2rem; border-radius: 50px;
+      font-size: 1.35rem; font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      z-index: 10000; opacity: 0;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      pointer-events: none;
+    }
+    .atlas-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .atlas-toast svg { width: 1.6rem; height: 1.6rem; }
+
+    @media (max-width: 1000px) {
+      .atlas-modal-container { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+      .atlas-modal-sidebar { max-height: 45vh; }
+      .atlas-modal-nav { width: 4rem; height: 4rem; }
+    }
+    @media (max-width: 768px) {
+      .atlas-categorias { padding: 0 2rem; }
+      .atlas-controls { flex-direction: column; align-items: stretch; }
+      .atlas-cat-btns { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 1rem; }
+      .atlas-cat-btn { white-space: nowrap; flex-shrink: 0; }
+      .atlas-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .atlas-grid.list-view .atlas-card { flex-direction: column; }
+      .atlas-grid.list-view .atlas-card-thumb { width: 100%; aspect-ratio: 4/3; height: auto; }
+      .atlas-hero-stats { gap: 2.5rem; }
+      .atlas-modal-info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo" aria-label="Página inicial do NEPA">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" />
+      </a>
+      <nav class="navbar" id="navbar">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Sobre</a>
+        <a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html" class="active-link">Atlas</a>
+        <a href="pesquisas.html">Pesquisas</a>
+        <a href="membros.html">Membros</a>
+        <a href="index.html#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="atlas-hero">
+      <div class="atlas-hero-inner">
+        <span class="section-label" style="color:var(--verde-claro);">Cartografia temática</span>
+        <h1>Atlas <span class="accent">NEPA</span></h1>
+        <p>Coleção de mapas físicos, sociais, econômicos e ambientais produzidos pelo núcleo, abrangendo o Maranhão, a Amazônia e o Nordeste brasileiro.</p>
+        <div class="atlas-hero-stats" id="atlas-hero-stats"></div>
+      </div>
+    </section>
+
+    <section class="atlas-categorias">
+      <div class="atlas-controls">
+        <div class="atlas-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="search" id="atlas-search" placeholder="Buscar por título, tema, autor, palavra-chave..." autocomplete="off" />
+          <button class="atlas-search-clear" id="atlas-search-clear" aria-label="Limpar busca">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="atlas-secondary-controls">
+          <select class="atlas-sort" id="atlas-sort">
+            <option value="ordem">Padrão</option>
+            <option value="recentes">Mais recentes</option>
+            <option value="antigos">Mais antigos</option>
+            <option value="az">Título (A-Z)</option>
+            <option value="za">Título (Z-A)</option>
+          </select>
+          <button class="atlas-btn-icon" id="atlas-fav-toggle" title="Mostrar apenas favoritos" aria-label="Filtrar favoritos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </button>
+          <div class="view-toggle" role="group">
+            <button class="active" data-view="grid" title="Visualização em grade" aria-label="Grade">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </button>
+            <button data-view="list" title="Visualização em lista" aria-label="Lista">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1.5"/><circle cx="4" cy="12" r="1.5"/><circle cx="4" cy="18" r="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="atlas-cat-btns" id="atlas-cat-btns"></div>
+
+      <div class="atlas-results-info">
+        <span id="atlas-results-info"></span>
+        <button class="atlas-clear-filters" id="atlas-clear-filters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Limpar filtros
+        </button>
+      </div>
+
+      <div class="atlas-grid" id="atlas-grid">
+        <!-- Skeleton inicial -->
+        <div class="atlas-skeleton" id="atlas-skeleton">
+          <div class="atlas-skeleton-card"><div class="atlas-skeleton-thumb"></div><div class="atlas-skeleton-body"><div class="atlas-skeleton-line short"></div><div class="atlas-skeleton-line"></div><div class="atlas-skeleton-line medium"></div></div></div>
+          <div class="atlas-skeleton-card"><div class="atlas-skeleton-thumb"></div><div class="atlas-skeleton-body"><div class="atlas-skeleton-line short"></div><div class="atlas-skeleton-line"></div><div class="atlas-skeleton-line medium"></div></div></div>
+          <div class="atlas-skeleton-card"><div class="atlas-skeleton-thumb"></div><div class="atlas-skeleton-body"><div class="atlas-skeleton-line short"></div><div class="atlas-skeleton-line"></div><div class="atlas-skeleton-line medium"></div></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============== MODAL ENRIQUECIDO ============== -->
+  <div class="atlas-modal" id="atlas-modal" role="dialog" aria-labelledby="modal-title">
+    <div class="atlas-modal-container">
+      <!-- Lado esquerdo: viewer com zoom/pan -->
+      <div class="atlas-modal-viewer" id="atlas-modal-viewer">
+        <div class="atlas-modal-img-wrap" id="atlas-modal-img-wrap">
+          <img id="atlas-modal-img" src="" alt="" draggable="false" />
+        </div>
+
+        <!-- Setas navegação -->
+        <button class="atlas-modal-nav prev" id="atlas-modal-prev" aria-label="Mapa anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button class="atlas-modal-nav next" id="atlas-modal-next" aria-label="Próximo mapa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+
+        <!-- Controles de zoom -->
+        <div class="atlas-modal-controls">
+          <button class="atlas-modal-control-btn" id="atlas-zoom-out" aria-label="Diminuir zoom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <span class="atlas-modal-zoom-text" id="atlas-zoom-level">100%</span>
+          <button class="atlas-modal-control-btn" id="atlas-zoom-in" aria-label="Aumentar zoom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <button class="atlas-modal-control-btn" id="atlas-zoom-reset" aria-label="Resetar zoom">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar: informações -->
+      <aside class="atlas-modal-sidebar">
+        <div class="atlas-modal-sidebar-header">
+          <div style="flex:1; min-width:0;">
+            <div class="atlas-modal-cat-tag-large" id="modal-cat"></div>
+            <h3 class="atlas-modal-title" id="modal-title"></h3>
+          </div>
+          <button class="atlas-modal-close" id="atlas-modal-close" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="atlas-modal-body" id="atlas-modal-body"></div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="atlas-toast" id="atlas-toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+    <span id="atlas-toast-text">Link copiado!</span>
+  </div>
+
+  <footer class="footer-section">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA" onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="biblioteca.html">Biblioteca</a></li>
+          <li><a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>(c) 2025 NEPA - UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+  </button>
+
+  <script>
+    // ============================================================
+    // CATEGORIAS
+    // ============================================================
+    const CATEGORIAS = [
+      { id: 'todos',             nome: 'Todos',                   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>' },
+      { id: 'cartografia_base',  nome: 'Cartografia base',        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 20-5-2V4l5 2 6-2 5 2v14l-5-2-6 2z"/><line x1="9" y1="6" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="18"/></svg>' },
+      { id: 'fisico',            nome: 'Físico',                  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21l4-7 5 5 4-3 5 5"/><circle cx="6" cy="6" r="2"/></svg>' },
+      { id: 'cobertura_uso',     nome: 'Cobertura e uso',         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 4 13c0-5 3-9 7-11 1 1.5 2 3 2 5 0 5-3 7-2 13z"/><path d="M11 20c2-2 4-5 4-8a6 6 0 0 0-3-5"/></svg>' },
+      { id: 'socioeconomico',    nome: 'Socioeconômico',          icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' },
+      { id: 'saude',             nome: 'Saúde',                   icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
+      { id: 'comunidades',       nome: 'Comunidades tradicionais',icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+      { id: 'areas_protegidas',  nome: 'Áreas protegidas',        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
+      { id: 'riscos',            nome: 'Riscos',                  icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
+      { id: 'historico',         nome: 'Histórico',               icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+    ];
+
+    // Ícones diversos usados
+    const ICON_MAPA_PH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 20-5-2V4l5 2 6-2 5 2v14l-5-2-6 2z"/><line x1="9" y1="6" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="18"/></svg>';
+    const ICON_AUTOR  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    const ICON_ANO    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>';
+    const ICON_ESCALA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M2 6h20M2 18h20M6 9v6M12 9v6M18 9v6"/></svg>';
+    const ICON_FONTE  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+    // ============================================================
+    // ESTADO
+    // ============================================================
+    const STATE = {
+      allMaps: [],
+      filtered: [],
+      activeCat: 'todos',
+      searchTerm: '',
+      sort: 'ordem',
+      view: 'grid',
+      favOnly: false,
+      currentModalIdx: -1, // índice no array filtrado
+    };
+
+    const FAV_KEY = 'nepa-atlas-favs';
+    function getFavs() {
+      try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
+    }
+    function setFavs(arr) {
+      localStorage.setItem(FAV_KEY, JSON.stringify(arr));
+    }
+    function isFav(id) { return getFavs().includes(String(id)); }
+    function toggleFav(id) {
+      const favs = getFavs();
+      const sid = String(id);
+      const idx = favs.indexOf(sid);
+      if (idx >= 0) favs.splice(idx, 1);
+      else favs.push(sid);
+      setFavs(favs);
+      return idx < 0; // true se acabou de favoritar
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    const $ = (id) => document.getElementById(id);
+    const escAttr = (s) => String(s || '').replace(/"/g, '&quot;');
+    const getCategoria = (id) => CATEGORIAS.find(c => c.id === id) || CATEGORIAS[0];
+    const ANO_ATUAL = new Date().getFullYear();
+
+    function showToast(text) {
+      $('atlas-toast-text').textContent = text;
+      $('atlas-toast').classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => $('atlas-toast').classList.remove('show'), 2500);
+    }
+
+    // ============================================================
+    // FILTRO + ORDENAÇÃO
+    // ============================================================
+    function applyFiltersAndSort() {
+      const term = STATE.searchTerm.toLowerCase().trim();
+      const favs = getFavs();
+
+      let result = STATE.allMaps.filter(m => {
+        if (STATE.favOnly && !favs.includes(String(m.id))) return false;
+        if (STATE.activeCat !== 'todos' && m.categoria !== STATE.activeCat) return false;
+        if (term) {
+          const hay = ['titulo','tema','autor','palavras_chave','regiao','descricao','fonte_dados']
+            .map(k => String(m[k] || '').toLowerCase()).join(' ');
+          if (!hay.includes(term)) return false;
+        }
+        return true;
+      });
+
+      const sorters = {
+        ordem:    (a, b) => (a.ordem || 0) - (b.ordem || 0),
+        recentes: (a, b) => (b.ano || 0) - (a.ano || 0),
+        antigos:  (a, b) => (a.ano || 0) - (b.ano || 0),
+        az: (a, b) => String(a.titulo || '').localeCompare(String(b.titulo || ''), 'pt-BR'),
+        za: (a, b) => String(b.titulo || '').localeCompare(String(a.titulo || ''), 'pt-BR'),
+      };
+      result.sort(sorters[STATE.sort] || sorters.ordem);
+
+      STATE.filtered = result;
+      return result;
+    }
+
+    // ============================================================
+    // RENDER: HERO STATS
+    // ============================================================
+    function renderHeroStats() {
+      const total = STATE.allMaps.length;
+      const cats  = new Set(STATE.allMaps.map(m => m.categoria).filter(Boolean));
+      const anos  = STATE.allMaps.map(m => parseInt(m.ano)).filter(Boolean);
+      const minAno = anos.length ? Math.min(...anos) : '';
+      const maxAno = anos.length ? Math.max(...anos) : '';
+      const periodo = (minAno && maxAno && minAno !== maxAno) ? minAno + '-' + maxAno : (maxAno || '—');
+
+      const stats = [
+        { num: total, label: 'Mapas no acervo' },
+        { num: cats.size, label: 'Categorias' },
+        { num: periodo, label: 'Período coberto' },
+      ];
+      $('atlas-hero-stats').innerHTML = stats.map(s =>
+        '<div class="atlas-hero-stat"><span class="num">' + s.num + '</span><span class="label">' + s.label + '</span></div>'
+      ).join('');
+    }
+
+    // ============================================================
+    // RENDER: BOTÕES DE CATEGORIA com contagem
+    // ============================================================
+    function renderCategoryButtons() {
+      const cont = $('atlas-cat-btns');
+      const catsWithItems = new Set(STATE.allMaps.map(m => m.categoria).filter(Boolean));
+      const visible = CATEGORIAS.filter(c => c.id === 'todos' || catsWithItems.has(c.id));
+
+      cont.innerHTML = visible.map(c => {
+        const count = c.id === 'todos'
+          ? STATE.allMaps.length
+          : STATE.allMaps.filter(m => m.categoria === c.id).length;
+        return '<button class="atlas-cat-btn ' + (c.id === STATE.activeCat ? 'active' : '') + '" data-cat="' + c.id + '">' +
+                 c.icon + ' ' + c.nome +
+                 ' <span class="cat-count">' + count + '</span>' +
+               '</button>';
+      }).join('');
+
+      cont.querySelectorAll('.atlas-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          STATE.activeCat = btn.dataset.cat;
+          cont.querySelectorAll('.atlas-cat-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderGrid();
+          updateClearFiltersBtn();
+        });
+      });
+    }
+
+    // ============================================================
+    // RENDER: CARD
+    // ============================================================
+    function renderCard(m, idx) {
+      const cat = getCategoria(m.categoria);
+      const isDestaque = NepaDB.isTruthy(m.destaque);
+      const isNew = parseInt(m.ano) === ANO_ATUAL;
+      const fav = isFav(m.id);
+      const hasImg = m.imagem_url && m.imagem_url.length > 0;
+      const hasFile = m.arquivo_url && m.arquivo_url.length > 0;
+
+      const thumb = hasImg
+        ? '<img src="' + m.imagem_url + '" alt="' + escAttr(m.titulo) + '" loading="lazy" />'
+        : '<div class="atlas-card-thumb-placeholder">' + ICON_MAPA_PH + '</div>';
+
+      const overlay = hasImg
+        ? '<div class="atlas-card-overlay"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg> Ampliar mapa</span></div>'
+        : '';
+
+      const downloadBtn = hasFile
+        ? '<a href="' + m.arquivo_url + '" target="_blank" rel="noopener" class="atlas-btn-download" title="Baixar arquivo">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Baixar' +
+          '</a>'
+        : '';
+
+      const viewBtn = hasImg
+        ? '<a class="atlas-btn-view atlas-card-open" data-id="' + m.id + '" title="Ver mapa">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver mapa' +
+          '</a>'
+        : '<span class="atlas-btn-view" style="opacity:0.5; cursor:not-allowed;">Em produção</span>';
+
+      const badges = [];
+      if (isDestaque) badges.push('<span class="atlas-card-badge destaque" title="Destaque">★</span>');
+      if (isNew) badges.push('<span class="atlas-card-badge novo">NOVO</span>');
+
+      const favIconFilled = fav ? 'fill="currentColor"' : 'fill="none"';
+
+      return '<article class="atlas-card" style="animation-delay:' + (idx * 0.05) + 's">' +
+               (badges.length ? '<div class="atlas-card-badges">' + badges.join('') + '</div>' : '') +
+               '<div class="atlas-card-thumb atlas-card-open" data-id="' + m.id + '">' +
+                 '<span class="atlas-card-cat-tag">' + cat.icon + ' ' + cat.nome + '</span>' +
+                 thumb + overlay +
+                 '<button class="atlas-card-fav ' + (fav ? 'is-fav' : '') + '" data-id="' + m.id + '" title="' + (fav ? 'Remover dos favoritos' : 'Adicionar aos favoritos') + '">' +
+                   '<svg viewBox="0 0 24 24" ' + favIconFilled + ' stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+                 '</button>' +
+               '</div>' +
+               '<div class="atlas-card-body">' +
+                 (m.tema ? '<span class="atlas-card-tema">' + m.tema + '</span>' : '') +
+                 '<h3>' + (m.titulo || '') + '</h3>' +
+                 '<div class="atlas-card-meta">' +
+                   (m.autor ? '<div class="atlas-card-meta-item">' + ICON_AUTOR + ' ' + m.autor + '</div>' : '') +
+                   ((m.regiao || m.ano) ? '<div class="atlas-card-meta-item">' + ICON_ANO + ' ' + [m.regiao, m.ano].filter(Boolean).join(' · ') + '</div>' : '') +
+                   (m.escala ? '<div class="atlas-card-meta-item">' + ICON_ESCALA + ' Escala ' + m.escala + '</div>' : '') +
+                 '</div>' +
+                 '<div class="atlas-card-actions">' + viewBtn + downloadBtn + '</div>' +
+               '</div>' +
+             '</article>';
+    }
+
+    // ============================================================
+    // RENDER: GRID PRINCIPAL
+    // ============================================================
+    function renderGrid() {
+      const filtered = applyFiltersAndSort();
+      const grid = $('atlas-grid');
+      const info = $('atlas-results-info');
+
+      grid.className = 'atlas-grid' + (STATE.view === 'list' ? ' list-view' : '');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="atlas-empty">' +
+          '<div class="atlas-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>' +
+          '<h3>Nenhum mapa encontrado</h3>' +
+          '<p>Tente outra categoria, ajuste o termo de busca ou limpe os filtros.</p>' +
+          '</div>';
+        info.innerHTML = '<strong>0</strong> mapa(s)';
+        return;
+      }
+
+      grid.innerHTML = filtered.map((m, i) => renderCard(m, i)).join('');
+
+      const totalAtivo = STATE.favOnly ? getFavs().length : STATE.allMaps.length;
+      info.innerHTML = 'Exibindo <strong>' + filtered.length + '</strong> de <strong>' + totalAtivo + '</strong> mapa(s)' +
+                      (STATE.favOnly ? ' favorito(s)' : '');
+
+      // Click handlers
+      grid.querySelectorAll('.atlas-card-open').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('.atlas-card-fav')) return;
+          e.preventDefault();
+          openModalById(el.dataset.id);
+        });
+      });
+      grid.querySelectorAll('.atlas-card-fav').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const nowFav = toggleFav(id);
+          btn.classList.toggle('is-fav', nowFav);
+          const svg = btn.querySelector('svg');
+          svg.setAttribute('fill', nowFav ? 'currentColor' : 'none');
+          showToast(nowFav ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+          if (STATE.favOnly) renderGrid(); // refiltra
+        });
+      });
+    }
+
+    function updateClearFiltersBtn() {
+      const hasFilters = STATE.activeCat !== 'todos' || STATE.searchTerm || STATE.favOnly;
+      $('atlas-clear-filters').classList.toggle('visible', hasFilters);
+    }
+
+    // ============================================================
+    // MODAL — ZOOM, PAN, NAVEGAÇÃO
+    // ============================================================
+    const ZOOM_STEP = 0.25, ZOOM_MIN = 0.5, ZOOM_MAX = 4;
+    const Z = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0, startTX: 0, startTY: 0 };
+
+    function applyTransform(animate = true) {
+      const w = $('atlas-modal-img-wrap');
+      w.classList.toggle('no-transition', !animate);
+      w.style.transform = 'translate(' + Z.x + 'px, ' + Z.y + 'px) scale(' + Z.scale + ')';
+      $('atlas-zoom-level').textContent = Math.round(Z.scale * 100) + '%';
+      $('atlas-zoom-out').disabled = Z.scale <= ZOOM_MIN + 0.01;
+      $('atlas-zoom-in').disabled = Z.scale >= ZOOM_MAX - 0.01;
+    }
+    function resetZoom() { Z.scale = 1; Z.x = 0; Z.y = 0; applyTransform(true); }
+    function zoomBy(delta) {
+      const next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Z.scale + delta));
+      Z.scale = Math.round(next * 100) / 100;
+      if (Z.scale === 1) { Z.x = 0; Z.y = 0; }
+      applyTransform(true);
+    }
+
+    function openModalByIndex(idx) {
+      if (idx < 0 || idx >= STATE.filtered.length) return;
+      STATE.currentModalIdx = idx;
+      const m = STATE.filtered[idx];
+
+      $('modal-title').textContent = m.titulo || '';
+      const cat = getCategoria(m.categoria);
+      $('modal-cat').innerHTML = cat.icon + ' ' + cat.nome;
+
+      if (m.imagem_url) {
+        $('atlas-modal-img').src = m.imagem_url;
+        $('atlas-modal-img').alt = m.titulo;
+      } else {
+        $('atlas-modal-img').removeAttribute('src');
+      }
+
+      resetZoom();
+
+      // Body com info completa
+      const tags = NepaDB.parseList(m.palavras_chave);
+      const fav = isFav(m.id);
+      const hasFile = m.arquivo_url && m.arquivo_url.length > 0;
+
+      let bodyHtml = '';
+      if (m.descricao) {
+        bodyHtml += '<div class="atlas-modal-section"><h4>Sobre o mapa</h4><p>' + m.descricao + '</p></div>';
+      }
+
+      const info = [];
+      if (m.autor) info.push(['Autor', m.autor]);
+      if (m.ano) info.push(['Ano', m.ano]);
+      if (m.escala) info.push(['Escala', m.escala]);
+      if (m.regiao) info.push(['Região', m.regiao]);
+      if (m.tema) info.push(['Tema', m.tema]);
+      if (m.fonte_dados) info.push(['Fonte de dados', m.fonte_dados]);
+      if (info.length) {
+        bodyHtml += '<div class="atlas-modal-section"><h4>Detalhes técnicos</h4><div class="atlas-modal-info-grid">' +
+          info.map(([l, v]) => '<div class="atlas-modal-info-item"><label>' + l + '</label><span>' + v + '</span></div>').join('') +
+          '</div></div>';
+      }
+
+      if (tags.length) {
+        bodyHtml += '<div class="atlas-modal-section"><h4>Palavras-chave</h4><div class="atlas-modal-tags">' +
+          tags.map(t => '<span class="atlas-modal-tag" data-tag="' + escAttr(t) + '">' + t + '</span>').join('') +
+          '</div></div>';
+      }
+
+      // Actions
+      bodyHtml += '<div class="atlas-modal-actions">';
+      if (hasFile) {
+        bodyHtml += '<a href="' + m.arquivo_url + '" target="_blank" rel="noopener" class="btn-action btn-download">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>' +
+          ' Baixar arquivo</a>';
+      }
+      bodyHtml += '<button class="btn-action btn-share" id="modal-share">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+        ' Compartilhar</button>';
+      bodyHtml += '<button class="btn-action btn-fav-modal ' + (fav ? 'is-fav' : '') + '" id="modal-fav" data-id="' + m.id + '">' +
+        '<svg viewBox="0 0 24 24" ' + (fav ? 'fill="currentColor"' : 'fill="none"') + ' stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+        ' ' + (fav ? 'Favorito' : 'Favoritar') + '</button>';
+      bodyHtml += '</div>';
+
+      // Mapas relacionados (mesma categoria)
+      const related = STATE.allMaps
+        .filter(r => r.categoria === m.categoria && String(r.id) !== String(m.id))
+        .slice(0, 4);
+      if (related.length) {
+        bodyHtml += '<div class="atlas-modal-section"><h4>Mapas relacionados</h4><div class="atlas-related-list">' +
+          related.map(r => {
+            const thumb = r.imagem_url
+              ? '<img src="' + r.imagem_url + '" alt="" />'
+              : ICON_MAPA_PH;
+            return '<div class="atlas-related-item" data-id="' + r.id + '">' +
+              '<div class="atlas-related-thumb">' + thumb + '</div>' +
+              '<div class="atlas-related-info">' +
+                '<span>' + (r.tema || cat.nome) + '</span>' +
+                '<h5>' + r.titulo + '</h5>' +
+              '</div></div>';
+          }).join('') +
+          '</div></div>';
+      }
+
+      $('atlas-modal-body').innerHTML = bodyHtml;
+
+      // Bind actions
+      const shareBtn = $('modal-share');
+      if (shareBtn) shareBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('mapa', m.id);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url.toString()).then(() =>
+            showToast('Link do mapa copiado!')
+          );
+        }
+      });
+
+      const favBtn = $('modal-fav');
+      if (favBtn) favBtn.addEventListener('click', () => {
+        const nowFav = toggleFav(m.id);
+        favBtn.classList.toggle('is-fav', nowFav);
+        const svg = favBtn.querySelector('svg');
+        svg.setAttribute('fill', nowFav ? 'currentColor' : 'none');
+        favBtn.lastChild.textContent = ' ' + (nowFav ? 'Favorito' : 'Favoritar');
+        showToast(nowFav ? 'Adicionado aos favoritos' : 'Removido dos favoritos');
+        // Atualiza o card no grid também
+        const card = document.querySelector('.atlas-card-fav[data-id="' + m.id + '"]');
+        if (card) {
+          card.classList.toggle('is-fav', nowFav);
+          card.querySelector('svg').setAttribute('fill', nowFav ? 'currentColor' : 'none');
+        }
+      });
+
+      // Tags clicáveis abrem busca
+      $('atlas-modal-body').querySelectorAll('.atlas-modal-tag').forEach(t => {
+        t.addEventListener('click', () => {
+          closeModal();
+          $('atlas-search').value = t.dataset.tag;
+          STATE.searchTerm = t.dataset.tag;
+          $('atlas-search-clear').classList.add('visible');
+          renderGrid();
+          updateClearFiltersBtn();
+          $('atlas-search').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      // Relacionados clicáveis
+      $('atlas-modal-body').querySelectorAll('.atlas-related-item').forEach(item => {
+        item.addEventListener('click', () => openModalById(item.dataset.id));
+      });
+
+      // Atualiza botões prev/next
+      $('atlas-modal-prev').disabled = idx === 0;
+      $('atlas-modal-next').disabled = idx === STATE.filtered.length - 1;
+
+      // Atualiza URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('mapa', m.id);
+      window.history.replaceState({}, '', newUrl);
+
+      // Abre modal
+      $('atlas-modal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openModalById(id) {
+      // Se o mapa não está no filtrado atual, abre dele mesmo expandindo o filtro
+      let idx = STATE.filtered.findIndex(m => String(m.id) === String(id));
+      if (idx < 0) {
+        // Mapa não está visível com os filtros atuais — limpa filtros e tenta
+        STATE.activeCat = 'todos';
+        STATE.searchTerm = '';
+        STATE.favOnly = false;
+        $('atlas-search').value = '';
+        $('atlas-fav-toggle').classList.remove('active');
+        renderCategoryButtons();
+        renderGrid();
+        idx = STATE.filtered.findIndex(m => String(m.id) === String(id));
+      }
+      if (idx >= 0) openModalByIndex(idx);
+    }
+
+    function navigateModal(delta) {
+      const next = STATE.currentModalIdx + delta;
+      if (next >= 0 && next < STATE.filtered.length) openModalByIndex(next);
+    }
+
+    function closeModal() {
+      $('atlas-modal').classList.remove('active');
+      document.body.style.overflow = '';
+      STATE.currentModalIdx = -1;
+      // Remove ?mapa= da URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('mapa');
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    // ============================================================
+    // RENDER: FOOTER (config)
+    // ============================================================
+    function renderFooter() {
+      $('footer-descricao').textContent = NepaDB.config('site_descricao_curta');
+      $('footer-endereco').textContent = NepaDB.config('contato_endereco');
+      const email = NepaDB.config('contato_email');
+      const link = $('footer-email-link');
+      link.href = 'mailto:' + email;
+      link.textContent = email;
+      $('footer-mapa').src = NepaDB.config('mapa_iframe_url');
+    }
+
+    // ============================================================
+    // BOOT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Tema
+      const root = document.documentElement;
+      const themeToggle = $('themeToggle');
+      const iconSun = $('iconSun');
+      const iconMoon = $('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      // Menu
+      $('menu-btn').addEventListener('click', () => $('navbar').classList.toggle('active'));
+
+      // Header scroll
+      const header = $('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      // Back to top
+      const btt = $('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      // Busca
+      let searchTimer;
+      $('atlas-search').addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        $('atlas-search-clear').classList.toggle('visible', !!e.target.value);
+        searchTimer = setTimeout(() => {
+          STATE.searchTerm = e.target.value;
+          renderGrid();
+          updateClearFiltersBtn();
+        }, 200);
+      });
+      $('atlas-search-clear').addEventListener('click', () => {
+        $('atlas-search').value = '';
+        STATE.searchTerm = '';
+        $('atlas-search-clear').classList.remove('visible');
+        renderGrid();
+        updateClearFiltersBtn();
+      });
+
+      // Sort
+      $('atlas-sort').addEventListener('change', (e) => {
+        STATE.sort = e.target.value;
+        renderGrid();
+      });
+
+      // View toggle
+      document.querySelectorAll('.view-toggle button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          STATE.view = btn.dataset.view;
+          renderGrid();
+        });
+      });
+
+      // Favoritos toggle
+      $('atlas-fav-toggle').addEventListener('click', () => {
+        STATE.favOnly = !STATE.favOnly;
+        $('atlas-fav-toggle').classList.toggle('active', STATE.favOnly);
+        renderGrid();
+        updateClearFiltersBtn();
+      });
+
+      // Limpar filtros
+      $('atlas-clear-filters').addEventListener('click', () => {
+        STATE.activeCat = 'todos';
+        STATE.searchTerm = '';
+        STATE.favOnly = false;
+        $('atlas-search').value = '';
+        $('atlas-search-clear').classList.remove('visible');
+        $('atlas-fav-toggle').classList.remove('active');
+        renderCategoryButtons();
+        renderGrid();
+        updateClearFiltersBtn();
+      });
+
+      // ===== MODAL bindings =====
+      $('atlas-modal-close').addEventListener('click', closeModal);
+      $('atlas-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
+      });
+
+      $('atlas-modal-prev').addEventListener('click', () => navigateModal(-1));
+      $('atlas-modal-next').addEventListener('click', () => navigateModal(1));
+      $('atlas-zoom-in').addEventListener('click', () => zoomBy(ZOOM_STEP));
+      $('atlas-zoom-out').addEventListener('click', () => zoomBy(-ZOOM_STEP));
+      $('atlas-zoom-reset').addEventListener('click', resetZoom);
+
+      // Teclado
+      document.addEventListener('keydown', (e) => {
+        if (!$('atlas-modal').classList.contains('active')) return;
+        if (e.key === 'Escape') closeModal();
+        else if (e.key === 'ArrowLeft') navigateModal(-1);
+        else if (e.key === 'ArrowRight') navigateModal(1);
+        else if (e.key === '+' || e.key === '=') zoomBy(ZOOM_STEP);
+        else if (e.key === '-') zoomBy(-ZOOM_STEP);
+        else if (e.key === '0') resetZoom();
+      });
+
+      // Zoom com scroll
+      const viewer = $('atlas-modal-viewer');
+      viewer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        zoomBy(e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
+      }, { passive: false });
+
+      // Double click reset
+      viewer.addEventListener('dblclick', resetZoom);
+
+      // Pan (drag)
+      viewer.addEventListener('mousedown', (e) => {
+        if (Z.scale <= 1) return;
+        Z.dragging = true;
+        Z.startX = e.clientX; Z.startY = e.clientY;
+        Z.startTX = Z.x; Z.startTY = Z.y;
+        viewer.classList.add('dragging');
+      });
+      document.addEventListener('mousemove', (e) => {
+        if (!Z.dragging) return;
+        Z.x = Z.startTX + (e.clientX - Z.startX);
+        Z.y = Z.startTY + (e.clientY - Z.startY);
+        applyTransform(false);
+      });
+      document.addEventListener('mouseup', () => {
+        if (Z.dragging) {
+          Z.dragging = false;
+          viewer.classList.remove('dragging');
+        }
+      });
+
+      // ===== Carregamento de dados =====
+      try {
+        await NepaDB.load(['atlas', 'config']);
+        STATE.allMaps = NepaDB.sheet('atlas');
+        renderFooter();
+        renderHeroStats();
+        renderCategoryButtons();
+        renderGrid();
+
+        // Deep link: ?mapa=N abre o modal direto
+        const params = new URLSearchParams(window.location.search);
+        const mapaId = params.get('mapa');
+        if (mapaId) {
+          setTimeout(() => openModalById(mapaId), 100);
+        }
+
+      } catch (err) {
+        console.error('Erro:', err);
+        $('atlas-grid').innerHTML =
+          '<div class="atlas-empty"><div class="atlas-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Erro ao carregar</h3><p>Não foi possível ler database.xlsx. Verifique se o arquivo está disponível no servidor.</p></div>';
+      }
+    });
+  </script>
+</body>
+</html>

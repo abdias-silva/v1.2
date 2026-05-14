@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NEPA - Núcleo de Estudos e Pesquisas Ambientais da UFMA. Ciência, extensão e compromisso com o meio ambiente." />
+  <title>NEPA - Núcleo de Estudos e Pesquisas Ambientais</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+
+  <style>
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+    .contato-detail-icon svg { width: 2rem; height: 2rem; }
+    .research-icon svg { width: 100%; height: 100%; stroke-width: 1.6; }
+    .research-icon { display: inline-flex; align-items: center; justify-content: center; }
+    .loading-state-mini { text-align: center; padding: 4rem 2rem; color: var(--cinza-claro); }
+    .loading-spinner { width: 3rem; height: 3rem; border: 3px solid var(--verde-bg); border-top-color: var(--verde); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1.5rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* FIX: garante que o .doc-info preencha o card todo, evitando que o fundo
+       escuro do .doc-card apareça quando o título é mais curto que nos outros cards */
+    .docs-grid .doc-card { display: flex; flex-direction: column; }
+    .docs-grid .doc-info { flex: 1; }
+
+    /* Badge de destaque (estrela) no canto dos cards de publicação */
+    .publication-card { position: relative; }
+    .pub-destaque-flag {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      width: 2.6rem; height: 2.6rem; border-radius: 50%;
+      background: var(--verde); color: #fff; font-size: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(96,117,55,0.35); z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo" aria-label="Página inicial do NEPA">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA"
+          onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" />
+      </a>
+      <nav class="navbar" id="navbar" aria-label="Navegação principal">
+        <a href="index.html" class="active-link">Home</a>
+        <a href="#about">Sobre</a>
+        <a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a>
+        <a href="pesquisas.html">Pesquisas</a>
+        <a href="membros.html">Membros</a>
+        <a href="#eventos">Eventos</a>
+        <a href="#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Alternar tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="navbar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <section id="home" aria-label="Banner principal">
+      <div class="hero-swiper">
+        <div class="swiper-wrapper" id="hero-slides-wrapper">
+          <div class="swiper-slide" style="background:#193900;">
+            <div class="slide-overlay"></div>
+            <div class="home-content">
+              <div class="home-texto"><p style="color:#fff;">Carregando...</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="swiper-button-prev" aria-label="Slide anterior"></div>
+        <div class="swiper-button-next" aria-label="Próximo slide"></div>
+        <div class="swiper-pagination"></div>
+      </div>
+    </section>
+
+    <!-- SOBRE -->
+    <section id="about" class="content-section" aria-labelledby="about-title">
+      <div class="section-container">
+        <div class="about-grid">
+          <div class="about-image-wrap reveal">
+            <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
+              alt="Pesquisadores do NEPA em campo" loading="lazy" />
+            <div class="about-image-badge">
+              <div class="badge-number" id="about-badge-number">15+</div>
+              <div class="badge-label" id="about-badge-label">anos de pesquisa</div>
+            </div>
+          </div>
+          <div class="about-text-content reveal reveal-delay-2">
+            <div>
+              <span class="section-label">Sobre o núcleo</span>
+              <h2 class="section-title" id="about-title">
+                Pesquisa ambiental com <span class="accent">impacto real</span>
+              </h2>
+              <div class="divider"></div>
+            </div>
+            <p>
+              O <strong>Núcleo de Estudos e Pesquisas Ambientais (NEPA)</strong> é um grupo de pesquisa multidisciplinar vinculado à Universidade Federal do Maranhão, dedicado à investigação científica das relações entre sociedade, território e meio ambiente.
+            </p>
+            <p>
+              Atuamos em frentes como monitoramento da biodiversidade, análise de políticas públicas ambientais, geotecnologias aplicadas e educação ambiental, promovendo a integração entre produção acadêmica, extensão universitária e demandas sociais concretas.
+            </p>
+            <a href="#areas-pesquisa" class="btn-ghost">
+              Ver áreas de pesquisa
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMPACTO -->
+    <div class="impact-strip" aria-label="Números do NEPA">
+      <div class="impact-grid" id="impact-grid"></div>
+    </div>
+
+    <!-- PUBLICAÇÕES EM DESTAQUE -->
+    <section id="biblioteca" class="content-section section-bg" aria-labelledby="pub-title">
+      <div class="section-container">
+        <div class="publications-header">
+          <div>
+            <span class="section-label">Acervo científico</span>
+            <h2 class="section-title" id="pub-title">Publicações em <span class="accent">Destaque</span></h2>
+          </div>
+          <a href="biblioteca.html" class="btn-outline btn">Ver toda a biblioteca</a>
+        </div>
+        <div class="publications-grid" id="recent-publications">
+          <div class="loading-state-mini">
+            <div class="loading-spinner"></div>
+            <p>Carregando publicações...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ÁREAS DE PESQUISA -->
+    <section id="areas-pesquisa" class="content-section" aria-labelledby="research-title">
+      <div class="section-container">
+        <div class="section-header center reveal">
+          <span class="section-label">Linhas temáticas</span>
+          <h2 class="section-title center" id="research-title">Áreas de <span class="accent">Pesquisa</span></h2>
+          <div class="divider center"></div>
+          <p class="section-desc center" style="margin-top:1.5rem;">Investigamos os grandes temas da interface entre sociedade, território e ambiente, com abordagem interdisciplinar e comprometimento com o rigor científico.</p>
+        </div>
+        <div class="research-areas-grid" id="research-areas-grid"></div>
+      </div>
+    </section>
+
+    <!-- PROJETOS DE PESQUISA -->
+    <section id="projetos" class="content-section section-bg" aria-labelledby="proj-title">
+      <div class="section-container">
+        <div class="section-header reveal">
+          <span class="section-label">Em desenvolvimento</span>
+          <h2 class="section-title" id="proj-title">Projetos de <span class="accent">Pesquisa</span></h2>
+          <div class="divider"></div>
+        </div>
+        <div class="projects-grid" id="projects-grid-home"></div>
+        <div style="text-align:center;margin-top:4rem;">
+          <a href="pesquisas.html" class="btn">
+            Ver todos os projetos
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTOS -->
+    <section id="eventos" class="content-section" aria-labelledby="events-title">
+      <div class="section-container">
+        <div class="publications-header">
+          <div>
+            <span class="section-label">Agenda acadêmica</span>
+            <h2 class="section-title" id="events-title">Eventos e <span class="accent">Notícias</span></h2>
+          </div>
+        </div>
+        <div class="events-layout" id="events-layout"></div>
+      </div>
+    </section>
+
+    <!-- DOCUMENTÁRIOS -->
+    <section id="documentarios" class="content-section section-bg" aria-labelledby="doc-title">
+      <div class="section-container">
+        <div class="section-header center reveal">
+          <span class="section-label">Produção audiovisual</span>
+          <h2 class="section-title center" id="doc-title">Documentários</h2>
+          <div class="divider center"></div>
+        </div>
+        <div class="docs-grid" id="docs-grid"></div>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section id="integrantes" class="content-section" aria-labelledby="team-title">
+      <div class="section-container">
+        <div class="section-header center reveal">
+          <span class="section-label">Quem somos</span>
+          <h2 class="section-title center" id="team-title">Corpo Docente</h2>
+          <div class="divider center"></div>
+        </div>
+        <div class="team-grid" id="team-grid"></div>
+        <div style="text-align:center;margin-top:4rem;">
+          <a href="membros.html" class="btn-ghost">
+            Ver todos os membros
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- PARCEIROS -->
+    <section id="parceiros" class="content-section section-bg" aria-labelledby="partners-title">
+      <div class="section-container">
+        <div class="partners-intro reveal">
+          <span class="section-label">Rede de colaboração</span>
+          <h2 class="section-title center" id="partners-title">Parceiros e <span class="accent">Instituições</span></h2>
+          <div class="divider center"></div>
+        </div>
+        <div class="partners-grid" id="partners-grid"></div>
+      </div>
+    </section>
+
+    <!-- CONTATO -->
+    <section id="contato" class="content-section" aria-labelledby="contact-title">
+      <div class="section-container">
+        <div class="contato-inner">
+          <div class="contato-info reveal">
+            <span class="section-label">Entre em contato</span>
+            <h2 class="section-title" id="contact-title">Fale com o <span style="color:rgba(255,255,255,0.85)">NEPA</span></h2>
+            <div class="divider" style="background:rgba(255,255,255,0.4);"></div>
+            <p class="section-desc">
+              Tem interesse em colaborar, desenvolver pesquisa conjunta ou simplesmente quer saber mais sobre o nosso trabalho? Entre em contato - respondemos em até 48 horas úteis.
+            </p>
+            <div class="contato-detail">
+              <div class="contato-detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="contato-detail-text">
+                <h4>Endereço</h4>
+                <p id="contato-endereco">Carregando...</p>
+              </div>
+            </div>
+            <div class="contato-detail">
+              <div class="contato-detail-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div class="contato-detail-text">
+                <h4>E-mail</h4>
+                <a href="#" id="contato-email-link">Carregando...</a>
+              </div>
+            </div>
+          </div>
+          <div class="contato-form-card reveal reveal-delay-2">
+            <h3 style="font-size:2rem; margin-bottom:2.5rem; color:var(--preto);">Envie uma mensagem</h3>
+            <div class="form-group">
+              <label class="form-label" for="nome">Nome completo</label>
+              <input type="text" id="nome" class="form-control" placeholder="Seu nome" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">E-mail</label>
+              <input type="email" id="email" class="form-control" placeholder="seu@email.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="assunto">Assunto</label>
+              <input type="text" id="assunto" class="form-control" placeholder="Motivo do contato" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="mensagem">Mensagem</label>
+              <textarea id="mensagem" class="form-control" rows="5" placeholder="Escreva sua mensagem..."></textarea>
+            </div>
+            <button type="button" class="btn" style="width:100%;" onclick="enviarMensagem()">Enviar mensagem</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer-section" id="address" aria-label="Rodapé">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA"
+          onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="#about">Sobre o NEPA</a></li>
+          <li><a href="biblioteca.html">Biblioteca digital</a></li>
+          <li><a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+          <li><a href="#eventos">Eventos</a></li>
+          <li><a href="#contato">Contato</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>(c) 2025 NEPA - Núcleo de Estudos e Pesquisas Ambientais - UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5"/></svg>
+  </button>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    const LINHA_ICONS = {
+      ecologia:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 20A7 7 0 0 1 4 13c0-5 3-9 7-11 1 1.5 2 3 2 5 0 5-3 7-2 13z"/><path d="M11 20c2-2 4-5 4-8a6 6 0 0 0-3-5"/></svg>',
+      mapa:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m9 20-5-2V4l5 2 6-2 5 2v14l-5-2-6 2z"/><line x1="9" y1="6" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="18"/></svg>',
+      agua:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+      urbano:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>',
+      comunidades: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 22s4-9 10-9 10 9 10 9"/><path d="M12 13V2M9 5l3-3 3 3"/></svg>',
+      clima:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>',
+      educacao:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/></svg>',
+      governanca:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+    };
+    const ICON_DOC = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+    // ============================================================
+    // HERO SLIDES — com descrição (parágrafo) e DOIS botões opcionais
+    // ============================================================
+    function renderSlides() {
+      const slides = NepaDB.sheet('slides_home').sort((a,b) => (a.ordem||0) - (b.ordem||0));
+      const wrap = document.getElementById('hero-slides-wrapper');
+      if (!slides.length) { wrap.innerHTML = ''; return; }
+
+      wrap.innerHTML = slides.map(s => {
+        // Background: imagem ou cor sólida
+        const bgImage = s.imagem_url
+          ? "background-image: url('" + s.imagem_url + "'); background-size:cover; background-position:center;"
+          : "background:#" + (s.cor_overlay || '193900') + ";";
+
+        // EYEBROW (texto pequeno em cima do título) - usa a coluna `subtitulo`
+        const eyebrow = s.subtitulo
+          ? '<span class="hero-eyebrow">' + s.subtitulo + '</span>'
+          : '';
+
+        // DESCRIÇÃO (parágrafo sob o título) - usa a coluna `descricao`
+        const descricao = s.descricao
+          ? '<p>' + s.descricao + '</p>'
+          : '';
+
+        // BOTÕES — 1º (sólido) e 2º (outline branco) opcionais
+        const btn1 = (s.cta_texto && s.cta_link)
+          ? '<a href="' + s.cta_link + '" class="btn"' + (s.cta_link.startsWith('http') ? ' target="_blank" rel="noopener"' : '') + '>' + s.cta_texto + '</a>'
+          : '';
+        const btn2 = (s.cta2_texto && s.cta2_link)
+          ? '<a href="' + s.cta2_link + '" class="btn-hero-outline"' + (s.cta2_link.startsWith('http') ? ' target="_blank" rel="noopener"' : '') + '>' + s.cta2_texto + '</a>'
+          : '';
+        const actions = (btn1 || btn2)
+          ? '<div class="home-actions">' + btn1 + btn2 + '</div>'
+          : '';
+
+        return '<div class="swiper-slide" style="' + bgImage + '">' +
+                 '<div class="slide-overlay"></div>' +
+                 '<div class="home-content"><div class="home-texto">' +
+                   eyebrow +
+                   '<h3>' + (s.titulo || '') + '</h3>' +
+                   descricao +
+                   actions +
+                 '</div></div>' +
+               '</div>';
+      }).join('');
+
+      new Swiper('.hero-swiper', {
+        loop: slides.length > 1,
+        autoplay: { delay: 6000, disableOnInteraction: false },
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        pagination: { el: '.swiper-pagination', clickable: true },
+        effect: 'fade',
+        fadeEffect: { crossFade: true },
+      });
+    }
+
+    // ============================================================
+    // ABOUT BADGE + IMPACT-STRIP
+    // ============================================================
+    function renderImpactStrip() {
+      const totalPubs    = NepaDB.sheet('publicacoes').length;
+      const totalMembros = NepaDB.sheet('membros').filter(m => m.categoria !== 'egressos').length;
+      const projAtivos   = NepaDB.sheet('projetos').filter(p => p.status === 'andamento').length;
+      const anos         = NepaDB.config('pesquisas_estat_4_n', '15+');
+
+      document.getElementById('about-badge-number').textContent = anos;
+      document.getElementById('about-badge-label').textContent  = NepaDB.config('pesquisas_estat_4_l', 'anos de pesquisa');
+
+      function fmt(n) { return n > 10 ? '+' + n : String(n); }
+
+      const items = [
+        { num: fmt(totalPubs),    label: 'Publicações científicas' },
+        { num: anos,              label: 'Anos de atividade' },
+        { num: fmt(totalMembros), label: 'Pesquisadores e bolsistas' },
+        { num: String(projAtivos),label: 'Projetos ativos' },
+      ];
+
+      document.getElementById('impact-grid').innerHTML = items.map((s, i) => {
+        const delay = i ? 'reveal-delay-' + i : '';
+        return '<div class="impact-item reveal ' + delay + '">' +
+                 '<span class="impact-number">' + s.num + '</span>' +
+                 '<span class="impact-label">' + s.label + '</span>' +
+               '</div>';
+      }).join('');
+    }
+
+    // ============================================================
+    // PUBLICAÇÕES EM DESTAQUE
+    // ============================================================
+    function renderRecentPubs() {
+      const pubs = NepaDB.sheet('publicacoes');
+      const featured = pubs.filter(p => NepaDB.isTruthy(p.destaque));
+      const toShow = featured.length > 0 ? featured.slice(0, 6) : pubs.slice(-6).reverse();
+      const list = document.getElementById('recent-publications');
+
+      if (!toShow.length) {
+        list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--cinza-claro);">Nenhuma publicação cadastrada.</p>';
+        return;
+      }
+
+      list.innerHTML = toShow.map((pub, i) => {
+        const delay = i % 3 === 1 ? 'reveal-delay-1' : i % 3 === 2 ? 'reveal-delay-2' : '';
+        return NepaDB.publicationCardHtml(pub, { extraClass: delay });
+      }).join('');
+    }
+
+    // ============================================================
+    // ÁREAS DE PESQUISA (linhas)
+    // ============================================================
+    function renderResearchAreas() {
+      const linhas = NepaDB.sheet('linhas_pesquisa').sort((a,b) => (a.ordem||0) - (b.ordem||0)).slice(0, 6);
+      document.getElementById('research-areas-grid').innerHTML = linhas.map((l, i) => {
+        const cor = '#' + (l.cor || '607537');
+        const icon = LINHA_ICONS[l.icone] || LINHA_ICONS.ecologia;
+        const delay = i % 3 === 1 ? 'reveal-delay-1' : i % 3 === 2 ? 'reveal-delay-2' : (i === 5 ? 'reveal-delay-3' : '');
+        return '<div class="research-area-card reveal ' + delay + '" style="--card-color:' + cor + ';">' +
+                 '<div class="research-icon" style="color:' + cor + ';width:5rem;height:5rem;">' + icon + '</div>' +
+                 '<h3>' + l.titulo + '</h3>' +
+                 '<p>' + l.descricao + '</p>' +
+               '</div>';
+      }).join('');
+    }
+
+    // ============================================================
+    // PROJETOS DE PESQUISA
+    // ============================================================
+    function renderProjects() {
+      const todos = NepaDB.sheet('projetos');
+      // Prioridade: destaque_home (coluna nova) > destaque (coluna antiga) > 4 primeiros
+      let projetos = todos.filter(p => NepaDB.isTruthy(p.destaque_home));
+      if (projetos.length === 0) projetos = todos.filter(p => NepaDB.isTruthy(p.destaque));
+      const toShow = projetos.length >= 4 ? projetos.slice(0, 4)
+                   : projetos.length > 0 ? projetos
+                   : todos.slice(0, 4);
+
+      document.getElementById('projects-grid-home').innerHTML = toShow.map((p, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        const statusCls = p.status === 'andamento' ? 'status-em-andamento'
+                       : p.status === 'concluido' ? 'status-concluido'
+                       : 'status-pausado';
+        const statusLabel = p.status === 'andamento' ? 'Em andamento'
+                         : p.status === 'concluido' ? 'Concluído'
+                         : 'Pausado';
+        const delay = i % 2 === 1 ? 'reveal-delay-1' : '';
+        return '<div class="project-card reveal ' + delay + '" onclick="window.location.href=\'pesquisa-detalhe.html?id=' + p.id + '\'" style="cursor:pointer;">' +
+                 '<div class="project-number">' + num + '</div>' +
+                 '<div style="flex:1;">' +
+                   '<h3>' + (p.titulo || '') + '</h3>' +
+                   '<p>' + (p.resumo || '') + '</p>' +
+                   '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:1rem;">' +
+                     '<span class="project-status ' + statusCls + '">' + statusLabel + '</span>' +
+                     '<a href="pesquisa-detalhe.html?id=' + p.id + '" class="btn-secondary" onclick="event.stopPropagation();">' +
+                       'Ver detalhes ' +
+                       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>' +
+                     '</a>' +
+                   '</div>' +
+                 '</div>' +
+               '</div>';
+      }).join('');
+    }
+
+    // ============================================================
+    // EVENTOS
+    // ============================================================
+    function renderEventos() {
+      const eventos = NepaDB.sheet('eventos').sort((a,b) => (a.ordem||0) - (b.ordem||0));
+      const wrap = document.getElementById('events-layout');
+      if (!eventos.length) { wrap.innerHTML = ''; return; }
+
+      const featured = eventos.find(e => NepaDB.isTruthy(e.destaque)) || eventos[0];
+      const others = eventos.filter(e => e !== featured).slice(0, 4);
+
+      function parseDate(d) {
+        if (!d) return { day: '', month: '' };
+        const m = String(d).match(/(\d{1,2})\s+de\s+(\w+)/i);
+        if (m) {
+          const months = {'janeiro':'Jan','fevereiro':'Fev','março':'Mar','marco':'Mar','abril':'Abr','maio':'Mai','junho':'Jun','julho':'Jul','agosto':'Ago','setembro':'Set','outubro':'Out','novembro':'Nov','dezembro':'Dez'};
+          return { day: m[1].padStart(2,'0'), month: months[m[2].toLowerCase()] || m[2].slice(0,3) };
+        }
+        return { day: '', month: '' };
+      }
+
+      const featImg = featured.imagem_url || 'https://placehold.co/800x450/193900/FFFFFF?text=' + encodeURIComponent(featured.tipo || 'Evento');
+      const featCta = featured.link
+        ? '<a href="' + featured.link + '"' + (featured.link.startsWith('http') ? ' target="_blank" rel="noopener"' : '') + ' class="btn">' +
+            (featured.cta_texto || 'Saiba mais') +
+            ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>' +
+          '</a>'
+        : '';
+
+      wrap.innerHTML =
+        '<div class="event-featured reveal">' +
+          '<img src="' + featImg + '" alt="' + (featured.titulo || '') + '" loading="lazy" />' +
+          '<div class="event-featured-body">' +
+            '<div class="event-date-pill">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+              ' ' + (featured.data || '') + (featured.local ? ' - ' + featured.local : '') +
+            '</div>' +
+            '<h3>' + (featured.titulo || '') + '</h3>' +
+            '<p>' + (featured.descricao || '') + '</p>' +
+            featCta +
+          '</div>' +
+        '</div>' +
+        '<div class="events-list">' +
+          others.map((e, i) => {
+            const d = parseDate(e.data);
+            const delay = i ? 'reveal-delay-' + i : '';
+            return '<article class="event-item reveal ' + delay + '">' +
+                     '<div class="event-item-date"><div class="day">' + d.day + '</div><div class="month">' + d.month + '</div></div>' +
+                     '<div><h4>' + (e.titulo || '') + '</h4><p>' + (e.descricao || '') + '</p></div>' +
+                   '</article>';
+          }).join('') +
+        '</div>';
+    }
+
+    // ============================================================
+    // DOCUMENTÁRIOS
+    // O <p> sob o título usa "Produção NEPA · UFMA" + ano (se houver)
+    // - igual ao layout original. A coluna "descricao" da planilha
+    //   é mostrada apenas no atributo "title" (aparece como tooltip).
+    // ============================================================
+    function renderDocs() {
+      const docs = NepaDB.sheet('documentarios').sort((a,b) => (a.ordem||0) - (b.ordem||0));
+      if (!docs.length) { document.getElementById('docs-grid').innerHTML = ''; return; }
+
+      function getYouTubeThumb(url) {
+        if (!url) return '';
+        const m = String(url).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
+        return m ? 'https://img.youtube.com/vi/' + m[1] + '/maxresdefault.jpg' : '';
+      }
+
+      function escAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
+
+      document.getElementById('docs-grid').innerHTML = docs.map((d, i) => {
+        const thumb = d.thumbnail_url || getYouTubeThumb(d.video_url) ||
+          'https://placehold.co/640x360/2d4a1e/FFFFFF?text=' + encodeURIComponent(d.titulo || 'Documentário');
+        const link = d.video_url || '#';
+        const delay = i ? 'reveal-delay-' + i : '';
+
+        // Assinatura curta: "Produção NEPA · UFMA" (+ ano se tiver)
+        const assinatura = 'Produção NEPA · UFMA' + (d.ano ? ' · ' + d.ano : '');
+
+        // Descrição completa vira tooltip ao passar o mouse
+        const tooltip = d.descricao ? ' title="' + escAttr(d.descricao) + '"' : '';
+        const ariaLabel = 'Assistir documentário: ' + (d.titulo || '');
+
+        return '<div class="doc-card reveal ' + delay + '"' + tooltip + '>' +
+                 '<a href="' + link + '" target="_blank" rel="noopener" class="doc-poster-link" aria-label="' + escAttr(ariaLabel) + '">' +
+                   '<img src="' + thumb + '" alt="' + escAttr(d.titulo) + '" loading="lazy" />' +
+                   '<div class="doc-overlay"><div class="play-icon" aria-hidden="true"></div></div>' +
+                 '</a>' +
+                 '<div class="doc-info">' +
+                   '<h3>' + (d.titulo || '') + '</h3>' +
+                   '<p>' + assinatura + '</p>' +
+                 '</div>' +
+               '</div>';
+      }).join('');
+    }
+
+    // ============================================================
+    // EQUIPE
+    // ============================================================
+    function renderTeam() {
+      const todos = NepaDB.sheet('membros');
+      const docentes = todos
+        .filter(m => m.categoria === 'coordenacao' || m.categoria === 'docentes')
+        .sort((a, b) => {
+          const catOrder = { coordenacao: 0, docentes: 1 };
+          const catDiff = (catOrder[a.categoria] || 9) - (catOrder[b.categoria] || 9);
+          if (catDiff !== 0) return catDiff;
+          return (a.ordem || 0) - (b.ordem || 0);
+        })
+        .slice(0, 4);
+
+      if (!docentes.length) {
+        document.getElementById('team-grid').innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--cinza-claro);">Nenhum docente cadastrado.</p>';
+        return;
+      }
+
+      document.getElementById('team-grid').innerHTML = docentes.map((m, i) =>
+        NepaDB.membroCardHtml(m)
+      ).join('');
+    }
+
+    // ============================================================
+    // PARCEIROS
+    // ============================================================
+    function renderParceiros() {
+      const parceiros = NepaDB.sheet('parceiros').sort((a,b) => (a.ordem||0) - (b.ordem||0));
+      if (!parceiros.length) { document.getElementById('partners-grid').innerHTML = ''; return; }
+
+      document.getElementById('partners-grid').innerHTML = parceiros.map((p, i) => {
+        const logo = p.logo_url || 'https://placehold.co/120x60/f0f5e8/607537?text=' + encodeURIComponent(p.nome);
+        const delay = i % 4 ? 'reveal-delay-' + (i % 4) : '';
+        const inner = '<img src="' + logo + '" alt="' + p.nome + '" loading="lazy" /><span>' + p.nome + '</span>';
+        return p.site
+          ? '<a href="' + p.site + '" target="_blank" rel="noopener" class="partner-item reveal ' + delay + '" style="text-decoration:none;">' + inner + '</a>'
+          : '<div class="partner-item reveal ' + delay + '">' + inner + '</div>';
+      }).join('');
+    }
+
+    // ============================================================
+    // CONFIG (footer + contato)
+    // ============================================================
+    function renderConfig() {
+      const email = NepaDB.config('contato_email');
+      const endereco = NepaDB.config('contato_endereco');
+      const desc = NepaDB.config('site_descricao_curta');
+      const mapUrl = NepaDB.config('mapa_iframe_url');
+
+      document.getElementById('contato-endereco').textContent = endereco;
+      const ce = document.getElementById('contato-email-link');
+      ce.href = 'mailto:' + email; ce.textContent = email;
+
+      document.getElementById('footer-descricao').textContent = desc;
+      document.getElementById('footer-endereco').textContent = endereco;
+      const fe = document.getElementById('footer-email-link');
+      fe.href = 'mailto:' + email; fe.textContent = email;
+      document.getElementById('footer-mapa').src = mapUrl;
+    }
+
+    function enviarMensagem() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const assunto = document.getElementById('assunto').value.trim();
+      const mensagem = document.getElementById('mensagem').value.trim();
+      if (!nome || !email || !mensagem) {
+        alert('Preencha pelo menos nome, e-mail e mensagem.');
+        return;
+      }
+      const destinatario = NepaDB.config('contato_email');
+      const corpo = encodeURIComponent('Nome: ' + nome + '\nE-mail: ' + email + '\n\n' + mensagem);
+      window.location.href = 'mailto:' + destinatario + '?subject=' + encodeURIComponent(assunto || 'Contato via site') + '&body=' + corpo;
+    }
+    window.enviarMensagem = enviarMensagem;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const root = document.documentElement;
+      const themeToggle = document.getElementById('themeToggle');
+      const iconSun = document.getElementById('iconSun');
+      const iconMoon = document.getElementById('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      const menuBtn = document.getElementById('menu-btn');
+      const navbar = document.getElementById('navbar');
+      menuBtn.addEventListener('click', () => navbar.classList.toggle('active'));
+
+      const header = document.getElementById('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      const btt = document.getElementById('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      try {
+        await NepaDB.load();
+        renderSlides();
+        renderImpactStrip();
+        renderRecentPubs();
+        renderResearchAreas();
+        renderProjects();
+        renderEventos();
+        renderDocs();
+        renderTeam();
+        renderParceiros();
+        renderConfig();
+
+        const revObs = new IntersectionObserver(entries => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+      } catch (err) {
+        console.error('Erro ao carregar database.xlsx:', err);
+      }
+    });
+  </script>
+</body>
+</html>

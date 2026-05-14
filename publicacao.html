@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Detalhes da publicação - NEPA - UFMA" />
+  <title>Carregando... | NEPA</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="nepa-data.js?v=8"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="dark-tweaks.css" />
+
+  <style>
+    .footer-contact-item svg { width: 1.6rem; height: 1.6rem; flex-shrink: 0; stroke-width: 2; color: var(--verde); margin-top: 0.2rem; }
+    .pub-type-icon-inline { display: inline-flex; align-items: center; gap: 0.6rem; vertical-align: -3px; }
+    .pub-type-icon-inline svg { width: 1.5rem; height: 1.5rem; }
+    .estado-erro-icon {
+      width: 7rem; height: 7rem; border-radius: 50%; background: rgba(96,117,55,0.1);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 2.5rem; color: var(--verde);
+    }
+
+    /* Badge de destaque (estrela) — padrão usado também em index e biblioteca */
+    .publication-card { position: relative; }
+    .pub-destaque-flag {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      width: 2.6rem; height: 2.6rem; border-radius: 50%;
+      background: var(--verde); color: #fff; font-size: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(96,117,55,0.35); z-index: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <header class="header" id="siteHeader">
+    <div class="header-container">
+      <a href="index.html" class="logo" aria-label="Página inicial do NEPA">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA"
+          onerror="this.src='https://placehold.co/130x42/607537/FFFFFF?text=NEPA';" />
+      </a>
+      <nav class="navbar" id="navbar" aria-label="Navegação principal">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">Sobre</a>
+        <a href="biblioteca.html" class="active-link">Biblioteca</a>
+        <a href="pesquisas.html">Pesquisas</a>
+        <a href="membros.html">Membros</a>
+        <a href="index.html#eventos">Eventos</a>
+        <a href="index.html#contato">Contato</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn" id="themeToggle" aria-label="Alternar tema">
+          <svg id="iconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+          </svg>
+          <svg id="iconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="display:none;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+          </svg>
+        </button>
+        <button class="icon-btn" id="menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="navbar">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="pub-detail-page">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb-bar" id="breadcrumb-bar" style="display:none;">
+      <nav class="breadcrumb" aria-label="Localização atual">
+        <a href="index.html">NEPA</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <a href="biblioteca.html">Biblioteca</a>
+        <a href="atlas.html">Atlas</a>
+        <span class="breadcrumb-sep" aria-hidden="true">›</span>
+        <span class="breadcrumb-current" id="breadcrumb-title">Publicação</span>
+      </nav>
+    </div>
+
+    <!-- ESTADO DE LOADING -->
+    <div id="loading-state" style="text-align:center; padding: 15rem 2rem 6rem;">
+      <div class="loading-spinner" style="margin:0 auto 2rem;"></div>
+      <p style="font-size:1.6rem; color:var(--cinza-claro);">Carregando publicação...</p>
+    </div>
+
+    <!-- ESTADO DE ERRO -->
+    <div id="error-state" style="display:none; text-align:center; padding:15rem 2rem 6rem; max-width:600px; margin:0 auto;">
+      <div class="estado-erro-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/>
+        </svg>
+      </div>
+      <h2 style="font-family:var(--fonte-corpo); font-size:2.2rem; margin-bottom:1rem; color:var(--preto);">Publicação não encontrada</h2>
+      <p style="font-size:1.55rem; color:var(--cinza-claro); margin-bottom:3rem;" id="error-message">Não foi possível localizar esta publicação. Verifique o link ou explore nossa biblioteca completa.</p>
+      <a href="biblioteca.html" class="btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar para a Biblioteca
+      </a>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL DA PUBLICAÇÃO -->
+    <div id="pub-detail-wrap" style="display:none;">
+      <div class="pub-detail-main">
+
+        <!-- COLUNA PRINCIPAL -->
+        <article class="pub-detail-content" aria-labelledby="pub-title-main">
+          <div class="pub-detail-type-row">
+            <span id="pub-type-badge" class="badge badge-verde"></span>
+            <span id="pub-destaque-flag"></span>
+          </div>
+          <h1 class="pub-detail-title" id="pub-title-main"></h1>
+          <p class="pub-detail-authors" id="pub-authors"></p>
+
+          <!-- Resumo -->
+          <section class="pub-abstract-section" aria-labelledby="abstract-heading">
+            <h2 id="abstract-heading">Resumo</h2>
+            <div id="pub-abstract"></div>
+          </section>
+
+          <!-- Palavras-chave -->
+          <section class="keywords-section" id="keywords-section" aria-labelledby="kw-heading" style="margin-bottom:3.5rem;">
+            <h2 id="kw-heading">Palavras-chave</h2>
+            <div class="keywords-wrap" id="pub-keywords"></div>
+          </section>
+
+          <!-- Link de volta -->
+          <a href="biblioteca.html" class="btn-ghost" style="margin-top:2rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            Voltar para a Biblioteca
+          </a>
+        </article>
+
+        <!-- SIDEBAR -->
+        <aside class="pub-detail-sidebar" aria-label="Detalhes e download">
+          <div class="pub-sidebar-card">
+            <h3>Detalhes da Publicação</h3>
+            <div id="pub-meta"></div>
+            <div id="pub-download"></div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- PUBLICAÇÕES RELACIONADAS -->
+      <section class="related-section" id="related-section" style="display:none;" aria-labelledby="related-heading">
+        <span class="section-label">Continue explorando</span>
+        <h2 id="related-heading">Publicações Relacionadas</h2>
+        <div class="divider" style="margin-bottom:3rem;"></div>
+        <div class="related-grid" id="related-grid"></div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer class="footer-section" aria-label="Rodapé">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="./img/NOVA_LOGO_NEPA.png" alt="Logo NEPA"
+          onerror="this.src='https://placehold.co/120x38/607537/FFFFFF?text=NEPA';" loading="lazy" />
+        <p id="footer-descricao"></p>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Página inicial</a></li>
+          <li><a href="biblioteca.html">Biblioteca digital</a></li>
+          <li><a href="atlas.html">Atlas</a></li>
+          <li><a href="pesquisas.html">Pesquisas</a></li>
+          <li><a href="membros.html">Membros</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p id="footer-endereco"></p>
+        </div>
+        <div class="footer-contact-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <a href="#" id="footer-email-link"></a>
+        </div>
+      </div>
+      <div class="footer-map-wrap">
+        <iframe id="footer-mapa" title="Mapa" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>(c) 2025 NEPA - Núcleo de Estudos e Pesquisas Ambientais - UFMA. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Voltar ao topo">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+    </svg>
+  </button>
+
+  <script>
+    // ============================================================
+    // ÍCONES: usa o helper compartilhado do NepaDB (mesmo do index/biblioteca)
+    // ============================================================
+    function getPubIconHtml(tipo) { return NepaDB.getPubIcon(tipo); }
+
+    function pubBadgeHtml(tipo) {
+      return '<span class="pub-type-icon-inline">' + getPubIconHtml(tipo) + ' ' + (tipo || 'Publicação') + '</span>';
+    }
+
+    // ============================================================
+    // RENDERIZAÇÃO DA PUBLICAÇÃO
+    // ============================================================
+    function renderPublication(pub, allPubs) {
+      const isDestaque = NepaDB.isTruthy(pub.destaque);
+
+      // Title da página
+      document.title = pub.titulo + ' | NEPA';
+
+      // Meta description dinâmica
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.content = pub.resumo
+          ? String(pub.resumo).substring(0, 160) + '...'
+          : pub.titulo + ' - Publicação do NEPA - UFMA';
+      }
+
+      // Breadcrumb
+      const truncTitle = pub.titulo.length > 60 ? pub.titulo.substring(0, 60) + '...' : pub.titulo;
+      document.getElementById('breadcrumb-title').textContent = truncTitle;
+      document.getElementById('breadcrumb-bar').style.display = 'block';
+
+      // Badge de tipo
+      document.getElementById('pub-type-badge').innerHTML = pubBadgeHtml(pub.tipo);
+
+      // Destaque
+      if (isDestaque) {
+        document.getElementById('pub-destaque-flag').innerHTML =
+          '<span class="badge badge-verde" style="background:var(--verde);color:#fff;display:inline-flex;align-items:center;gap:.5rem;">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' +
+          ' Publicação em Destaque</span>';
+      }
+
+      // Título e autores
+      document.getElementById('pub-title-main').textContent = pub.titulo;
+      document.getElementById('pub-authors').textContent = pub.autores || '';
+
+      // Resumo
+      document.getElementById('pub-abstract').innerHTML = pub.resumo
+        ? String(pub.resumo).split(/\n\n+/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('')
+        : '<p style="color:var(--cinza-claro);font-style:italic;">Resumo não disponível para esta publicação.</p>';
+
+      // Palavras-chave
+      if (pub.palavras_chave) {
+        const kwWrap = document.getElementById('pub-keywords');
+        kwWrap.innerHTML = '';
+        NepaDB.parseList(pub.palavras_chave).forEach(kw => {
+          const tag = document.createElement('a');
+          tag.className = 'keyword-tag';
+          tag.textContent = kw;
+          tag.href = 'biblioteca.html?q=' + encodeURIComponent(kw);
+          tag.setAttribute('aria-label', 'Buscar publicações com a palavra-chave: ' + kw);
+          kwWrap.appendChild(tag);
+        });
+      } else {
+        document.getElementById('keywords-section').style.display = 'none';
+      }
+
+      // Metadados da sidebar
+      let metaHtml = '';
+      metaHtml += '<div class="sidebar-meta-item"><label>Autor(es)</label><p>' + (pub.autores || 'Não informado') + '</p></div>';
+      metaHtml += '<div class="sidebar-meta-item"><label>Publicado em</label><p>' + (pub.publicado_em || 'Não informado') + '</p></div>';
+      metaHtml += '<div class="sidebar-meta-item"><label>Tipo</label><p>' + pubBadgeHtml(pub.tipo) + '</p></div>';
+      if (pub.palavras_chave) {
+        metaHtml += '<div class="sidebar-meta-item"><label>Palavras-chave</label><p style="line-height:1.6;">' + pub.palavras_chave + '</p></div>';
+      }
+      document.getElementById('pub-meta').innerHTML = metaHtml;
+
+      // Botão de download
+      const dlEl = document.getElementById('pub-download');
+      if (pub.arquivo_pdf && pub.arquivo_pdf !== 'SEU_LINK_1' && !String(pub.arquivo_pdf).startsWith('SEU_LINK')) {
+        dlEl.innerHTML =
+          '<a href="' + pub.arquivo_pdf + '" class="sidebar-download-btn" target="_blank" rel="noopener" aria-label="Baixar arquivo PDF de ' + pub.titulo + '">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">' +
+          '<path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21H19.44a2 2 0 0 0 1.94-1.515L22 17"/>' +
+          '</svg> Baixar Arquivo</a>';
+      } else {
+        dlEl.innerHTML =
+          '<div style="text-align:center;padding:1.5rem;font-size:1.35rem;color:var(--cinza-claro);border-top:1px solid var(--border-color);margin-top:2rem;">' +
+          'Arquivo não disponível para download</div>';
+      }
+
+      renderRelated(pub, allPubs);
+    }
+
+    // ============================================================
+    // PUBLICAÇÕES RELACIONADAS
+    // ============================================================
+    function renderRelated(pub, allPubs) {
+      const keywords = pub.palavras_chave
+        ? NepaDB.parseList(pub.palavras_chave).map(k => k.toLowerCase())
+        : [];
+
+      // Score por tipo ou palavras-chave em comum
+      const scored = allPubs
+        .filter(p => String(p.id) !== String(pub.id))
+        .map(p => {
+          let score = 0;
+          if ((p.tipo || '').toLowerCase() === (pub.tipo || '').toLowerCase()) score += 2;
+          if (keywords.length && p.palavras_chave) {
+            const pKws = String(p.palavras_chave).toLowerCase();
+            keywords.forEach(kw => { if (pKws.includes(kw)) score += 1; });
+          }
+          return { pub: p, score };
+        })
+        .filter(item => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map(item => item.pub);
+
+      // Fallback: outras publicações do mesmo tipo
+      const related = scored.length >= 2
+        ? scored
+        : allPubs
+          .filter(p => String(p.id) !== String(pub.id) && (p.tipo || '').toLowerCase() === (pub.tipo || '').toLowerCase())
+          .slice(0, 3);
+
+      if (!related.length) return;
+
+      const section = document.getElementById('related-section');
+      const grid    = document.getElementById('related-grid');
+      section.style.display = 'block';
+      // Usa o card padronizado (mesmo do index e da biblioteca)
+      grid.innerHTML = related.map(p => NepaDB.publicationCardHtml(p)).join('');
+    }
+
+    // ============================================================
+    // FOOTER (config)
+    // ============================================================
+    function renderFooter() {
+      document.getElementById('footer-descricao').textContent = NepaDB.config('site_descricao_curta');
+      document.getElementById('footer-endereco').textContent = NepaDB.config('contato_endereco');
+      const email = NepaDB.config('contato_email');
+      const link = document.getElementById('footer-email-link');
+      link.href = 'mailto:' + email;
+      link.textContent = email;
+      document.getElementById('footer-mapa').src = NepaDB.config('mapa_iframe_url');
+    }
+
+    // ============================================================
+    // BOOT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      // tema
+      const root = document.documentElement;
+      const themeToggle = document.getElementById('themeToggle');
+      const iconSun = document.getElementById('iconSun');
+      const iconMoon = document.getElementById('iconMoon');
+      function applyTheme(t) {
+        root.setAttribute('data-theme', t);
+        localStorage.setItem('nepa-theme', t);
+        iconSun.style.display  = t === 'dark' ? 'none' : 'block';
+        iconMoon.style.display = t === 'dark' ? 'block' : 'none';
+      }
+      applyTheme(localStorage.getItem('nepa-theme') || 'light');
+      themeToggle.addEventListener('click', () => applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+      // menu mobile
+      const menuBtn = document.getElementById('menu-btn');
+      const navbar = document.getElementById('navbar');
+      menuBtn.addEventListener('click', () => navbar.classList.toggle('active'));
+
+      // header scroll
+      const header = document.getElementById('siteHeader');
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const st = window.scrollY;
+        header.classList.toggle('header--hidden', st > lastScroll && st > 100);
+        header.classList.toggle('scrolled', st > 60);
+        lastScroll = st <= 0 ? 0 : st;
+      }, { passive: true });
+
+      // back to top
+      const btt = document.getElementById('back-to-top');
+      window.addEventListener('scroll', () => btt.classList.toggle('visible', window.scrollY > 400), { passive: true });
+      btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+      // PEGAR ID DA URL
+      const params = new URLSearchParams(window.location.search);
+      const pubIdRaw = params.get('id');
+
+      if (!pubIdRaw) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-message').textContent = 'Nenhum identificador de publicação foi informado na URL.';
+        document.getElementById('error-state').style.display = 'block';
+        return;
+      }
+
+      // CARREGAR DADOS DA PLANILHA
+      try {
+        await NepaDB.load(['publicacoes', 'config']);
+        renderFooter();
+
+        const allPubs = NepaDB.sheet('publicacoes');
+        document.getElementById('loading-state').style.display = 'none';
+
+        if (!allPubs.length) {
+          document.getElementById('error-message').textContent = 'Não foi possível conectar à base de dados. Verifique se o arquivo database.xlsx está disponível.';
+          document.getElementById('error-state').style.display = 'block';
+          return;
+        }
+
+        // Procurar pela publicação (por id, comparando como string)
+        const pub = allPubs.find(p => String(p.id) === String(pubIdRaw));
+
+        if (!pub) {
+          document.getElementById('error-state').style.display = 'block';
+          return;
+        }
+
+        renderPublication(pub, allPubs);
+        document.getElementById('pub-detail-wrap').style.display = 'block';
+      } catch (err) {
+        console.error('Erro ao carregar database.xlsx:', err);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-message').textContent = 'Erro ao carregar a base de dados. Verifique o arquivo database.xlsx.';
+        document.getElementById('error-state').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
